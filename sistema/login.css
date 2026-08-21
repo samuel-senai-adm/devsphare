@@ -1,0 +1,454 @@
+/* =========================================================
+   RESET GLOBAL
+========================================================= */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+/* =========================================================
+   VARIÁVEIS
+========================================================= */
+
+:root{
+
+    --vermelho:#e11d2e;
+    --vermelho-hover:#c51626;
+
+    --branco:#ffffff;
+    --cinza-claro:#f5f5f5;
+    --cinza:#e4e4e4;
+
+    --preto:#111111;
+    --texto:#555555;
+
+    --glass:rgba(255,255,255,0.88);
+
+    --borda:#e7e7e7;
+
+    --sombra:rgba(0,0,0,0.08);
+
+    --transition:all .3s ease;
+
+}
+
+/* =========================================================
+   BODY
+========================================================= */
+
+body{
+
+    font-family:'Poppins', sans-serif;
+
+    background:
+        radial-gradient(
+            circle at top,
+            rgba(225,29,46,.08),
+            transparent 35%
+        ),
+        var(--branco);
+
+    color:var(--preto);
+
+    min-height:100vh;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    padding:2rem;
+
+    overflow-x:hidden;
+
+}
+
+/* =========================================================
+   CONTAINER PRINCIPAL
+========================================================= */
+
+.container{
+
+    width:100%;
+    max-width:450px;
+
+    background:white;
+
+    border:1px solid var(--borda);
+
+    border-radius:30px;
+
+    padding:3rem 2.5rem;
+
+    box-shadow:
+        0 15px 40px rgba(0,0,0,0.06);
+
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.logo{
+
+    text-align:center;
+
+    margin-bottom:2.5rem;
+
+}
+
+.logo i{
+
+    font-size:3rem;
+
+    color:var(--vermelho);
+
+    margin-bottom:1rem;
+
+}
+
+.logo h1{
+
+    font-size:2rem;
+
+    font-weight:700;
+
+    color:var(--preto);
+
+    margin-bottom:.5rem;
+
+}
+
+.logo p{
+
+    font-size:.95rem;
+
+    color:var(--texto);
+
+}
+
+/* =========================================================
+   FORM BOX
+========================================================= */
+
+.form-box{
+
+    background:var(--cinza-claro);
+
+    padding:2rem;
+
+    border-radius:25px;
+
+    border:1px solid var(--borda);
+
+    margin-bottom:1.5rem;
+
+}
+
+/* =========================================================
+   TÍTULOS
+========================================================= */
+
+.form-box h2{
+
+    text-align:center;
+
+    font-size:1.8rem;
+
+    font-weight:700;
+
+    margin-bottom:2rem;
+
+    color:var(--preto);
+
+}
+
+.form-box h2 span{
+    color:var(--vermelho);
+}
+
+/* =========================================================
+   INPUT GROUP
+========================================================= */
+
+.input-group{
+
+    position:relative;
+
+    margin-bottom:1.5rem;
+
+}
+
+.input-group i{
+
+    position:absolute;
+
+    left:1.2rem;
+    top:50%;
+
+    transform:translateY(-50%);
+
+    color:var(--vermelho);
+
+    font-size:1rem;
+
+}
+
+/* =========================================================
+   INPUTS
+========================================================= */
+
+.input-group input{
+
+    width:100%;
+
+    padding:1rem 1rem 1rem 3rem;
+
+    border:1px solid var(--cinza);
+
+    border-radius:50px;
+
+    background:white;
+
+    color:var(--preto);
+
+    font-family:'Poppins', sans-serif;
+
+    font-size:1rem;
+
+    outline:none;
+
+    transition:var(--transition);
+
+}
+
+.input-group input::placeholder{
+
+    color:#999;
+
+}
+
+.input-group input:focus{
+
+    border-color:var(--vermelho);
+
+    box-shadow:
+        0 0 0 4px rgba(225,29,46,.08);
+
+}
+
+/* =========================================================
+   BOTÕES
+========================================================= */
+
+.btn{
+
+    width:100%;
+
+    padding:1rem;
+
+    border:none;
+
+    border-radius:50px;
+
+    background:var(--vermelho);
+
+    color:white;
+
+    font-family:'Poppins', sans-serif;
+
+    font-size:1rem;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:var(--transition);
+
+    box-shadow:
+        0 10px 25px rgba(225,29,46,.15);
+
+}
+
+.btn:hover{
+
+    background:var(--vermelho-hover);
+
+    transform:translateY(-3px);
+
+}
+
+/* =========================================================
+   TOGGLE LOGIN/CADASTRO
+========================================================= */
+
+.toggle{
+
+    text-align:center;
+
+    margin-top:1.5rem;
+
+    font-size:.95rem;
+
+    color:var(--texto);
+
+    cursor:pointer;
+
+    transition:var(--transition);
+
+}
+
+.toggle:hover{
+
+    color:var(--vermelho);
+
+}
+
+/* =========================================================
+   MENSAGENS
+========================================================= */
+
+.erro,
+.sucesso{
+
+    padding:1rem;
+
+    border-radius:15px;
+
+    margin-bottom:1.5rem;
+
+    text-align:center;
+
+    font-weight:500;
+
+}
+
+.erro{
+
+    background:#fff1f1;
+
+    border:1px solid #ffcccc;
+
+    color:var(--vermelho);
+
+}
+
+.sucesso{
+
+    background:#eefdf3;
+
+    border:1px solid #b7f3cb;
+
+    color:#20a15a;
+
+}
+
+/* =========================================================
+   TRANSIÇÕES
+========================================================= */
+
+.form-box,
+.container,
+.btn,
+.input-group input{
+
+    transition:var(--transition);
+
+}
+
+/* ========================= */
+/* 📱 CELULAR (até 768px) */
+/* ========================= */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  nav h2 {
+    font-size: 1.2rem;
+  }
+
+  #menu {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    padding: 1rem 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    gap: 0;
+  }
+
+  #menu.ativo {
+    display: flex;
+  }
+
+  #menu li {
+    padding: 1rem 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .menu-mobile {
+    display: block;
+  }
+
+  .banner h1 {
+    font-size: 2.2rem;
+  }
+
+  .banner p {
+    font-size: 1rem;
+  }
+
+  .container {
+    flex-direction: column;
+  }
+
+  .cardapio {
+    grid-template-columns: 1fr;
+  }
+
+  img {
+    width: 100%;
+    height: auto;
+  }
+}
+
+/* ========================= */
+/* 📲 TABLET (até 1024px) */
+/* ========================= */
+@media (max-width: 1024px) {
+  .banner h1 {
+    font-size: 2.8rem;
+  }
+
+  .cardapio {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .card {
+    width: 100%;
+  }
+}
+
+/* ========================= */
+/* 💻 TELAS GRANDES */
+/* ========================= */
+/* @media (min-width: 1200px) {
+  .container {
+    max-width: 1200px;
+    margin: auto;
+  }
+} */

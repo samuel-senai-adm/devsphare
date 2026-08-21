@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description"
+        content="DevSphare - Desenvolvimento de software, sistemas web, IoT e soluções tecnológicas personalizadas.">
+    <meta property="og:title" content="DevSphare">
+    <meta property="og:description" content="Desenvolvendo o futuro, linha por linha">
+    <meta property="og:image" content="fotos/icone.png">
+    <meta property="og:type" content="website">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevSphare - Desenvolvendo o futuro linha por linha</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="fotos/icone.png">
+</head>
+
+<body>
+    <!-- Header / Navbar -->
+    <header class="header" id="header">
+        <nav class="navbar">
+            <div class="logo">
+                <i class="fa-solid fa-sun"></i>
+                <span>DevSphare</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link">Início</a></li>
+                <li><a href="#como-funciona" class="nav-link">Serviços</a></li>
+                <li><a href="#sobre" class="nav-link">Sobre</a></li>
+                <li><a href="#projetos" class="nav-link">Projetos</a></li>
+                <li><a href="#contato" class="nav-link">Contato</a></li>
+            </ul>
+            <button class="hamburger" aria-label="Abrir menu">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+        </nav>
+    </header>
+
+    <!-- Seção Hero / Principal -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <span class="eyebrow">Software house · Mococa/SP</span>
+                <h1 class="hero-title">Desenvolvendo o<br><span class="accent-word">futuro</span>, linha por linha</h1>
+                <p class="hero-subtitle">
+                    Construímos software sob medida, do planejamento ao deploy, para transformar a ideia do seu negócio
+                    em produto real.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#como-funciona" class="btn btn-primary">
+                        <i class="fas fa-code"></i> Nossos Serviços
+                    </a>
+                    <a href="#reservar" class="btn btn-secondary">
+                        <i class="fas fa-rocket"></i> Começar Projeto
+                    </a>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="terminal">
+                    <div class="terminal-bar">
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-title">devsphare.js</span>
+                    </div>
+                    <div class="terminal-body">
+                        <span class="ln-num">1</span><span class="tk-key">const</span> <span
+                            class="tk-txt">empresa</span> = {<br>
+                        <span class="ln-num">2</span>&nbsp;&nbsp;nome: <span class="tk-str">"DevSphare"</span>,<br>
+                        <span class="ln-num">3</span>&nbsp;&nbsp;missao: <span class="tk-str">"inovar com
+                            código"</span>,<br>
+                        <span class="ln-num">4</span>&nbsp;&nbsp;stack: [<span class="tk-str">"web"</span>, <span
+                            class="tk-str">"iot"</span>, <span class="tk-str">"mobile"</span>],<br>
+                        <span class="ln-num">5</span>};<br>
+                        <span class="ln-num">6</span><br>
+                        <span class="ln-num">7</span><span class="tk-com">// transformando sua ideia</span><br>
+                        <span class="ln-num">8</span><span class="tk-fn">construir</span>(<span
+                            class="tk-txt">empresa</span>.stack);<span class="cursor-blink"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Serviços (Como Funciona) -->
+    <section id="como-funciona" class="features">
+        <div class="container">
+            <div class="section-head">
+                <span class="eyebrow">Serviços</span>
+                <h2>Como entregamos seu projeto</h2>
+                <p class="lead">Um processo enxuto, em três etapas, do briefing ao suporte contínuo.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-step">01 — Planejamento</span>
+                    <div class="feature-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <h3>Planejamento</h3>
+                    <p>Analisamos seu negócio e definimos a arquitetura ideal para sua solução.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-step">02 — Desenvolvimento</span>
+                    <div class="feature-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Desenvolvimento</h3>
+                    <p>Código limpo, performático e escalável com as melhores práticas do mercado.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-step">03 — Deploy</span>
+                    <div class="feature-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h3>Deploy & Suporte</h3>
+                    <p>Implantação contínua e suporte técnico especializado 24/7.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sobre a Empresa -->
+    <section id="sobre" class="about">
+        <div class="container">
+            <div class="section-head">
+                <span class="eyebrow">Sobre nós</span>
+                <h2>A DevSphare</h2>
+            </div>
+            <div class="mission-vision">
+                <div class="info-box">
+                    <h3><i class="fas fa-bullseye"></i> Missão</h3>
+                    <p>Transformar negócios através de software inovador e tecnologia de ponta.</p>
+                </div>
+                <div class="info-box">
+                    <h3><i class="fas fa-eye"></i> Visão</h3>
+                    <p>Ser referência nacional em desenvolvimento de software até 2028.</p>
+                </div>
+                <div class="info-box">
+                    <h3><i class="fas fa-heart"></i> Valores</h3>
+                    <p>Inovação, excelência, transparência e parceria estratégica.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Nossos Projetos -->
+    <section id="projetos" class="projects">
+        <div class="container">
+            <div class="section-head">
+                <span class="eyebrow">Portfólio</span>
+                <h2>Nossos Projetos</h2>
+                <p class="lead">Conheça algumas das soluções que já desenvolvemos.</p>
+            </div>
+
+            <div class="features-grid">
+
+                <!-- Projeto 1 -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+
+                    <h3>Armário Inteligente</h3>
+
+                    <p>
+                        Plataforma inteligente para reserva e gerenciamento de armários automatizados,
+                        utilizando QR Code e tecnologia IoT para controle seguro e eficiente.
+                    </p>
+
+                    <div style="margin-top: 1.4rem;">
+                        <button class="btn btn-secondary toggle-btn" data-target="armario-info">
+                            <i class="fas fa-circle-info"></i> Saiba Mais
+                        </button>
+
+                        <a href="smartlocker.html" class="btn btn-primary" target="_blank">
+                            <i class="fas fa-arrow-up-right-from-square"></i> Acessar Site
+                        </a>
+                    </div>
+
+                    <div id="armario-info" class="project-details" style="display: none;">
+                        <p>
+                            O Armário Inteligente é uma solução desenvolvida para automatizar
+                            reservas e acessos de armários através de QR Code e integração IoT.
+                        </p>
+
+                        <p>
+                            O sistema permite gerenciamento em tempo real, controle de ocupação,
+                            segurança digital e abertura automática do armário autorizado.
+                        </p>
+
+                        <p>
+                            Desenvolvido com foco em praticidade, segurança e inovação,
+                            o projeto moderniza o gerenciamento de espaços compartilhados.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Projeto 2 -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+
+                    <h3>Smart Menu</h3>
+
+                    <p>
+                        Sistema inteligente de cardápio digital para restaurantes,
+                        facilitando pedidos online e melhorando o atendimento.
+                    </p>
+
+                    <div style="margin-top: 1.4rem;">
+                        <button class="btn btn-primary toggle-btn" data-target="smartmenu-info">
+                            <i class="fas fa-circle-info"></i> Saiba Mais
+                        </button>
+                    </div>
+
+                    <div id="smartmenu-info" class="project-details" style="display: none;">
+                        <p>
+                            O Smart Menu foi criado para transformar a experiência de atendimento
+                            em restaurantes, bares e lanchonetes.
+                        </p>
+
+                        <p>
+                            O sistema utiliza QR Code para acesso rápido ao cardápio digital,
+                            permitindo pedidos organizados e mais agilidade no atendimento.
+                        </p>
+
+                        <p>
+                            A plataforma também auxilia no gerenciamento de pedidos,
+                            reduzindo filas e aumentando a eficiência operacional.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Projeto 3 -->
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-first-aid"></i>
+                    </div>
+
+                    <h3>Pulseira SOS</h3>
+
+                    <p>
+                        Dispositivo inteligente voltado para emergências médicas
+                        e monitoramento de idosos e pessoas vulneráveis.
+                    </p>
+
+                    <div style="margin-top: 1.4rem;">
+                        <button class="btn btn-primary toggle-btn" data-target="pulseira-info">
+                            <i class="fas fa-circle-info"></i> Saiba Mais
+                        </button>
+                    </div>
+
+                    <div id="pulseira-info" class="project-details" style="display: none;">
+                        <p>
+                            A Pulseira SOS é uma solução tecnológica criada para oferecer
+                            mais segurança em situações de emergência.
+                        </p>
+
+                        <p>
+                            O dispositivo permite o envio rápido de alertas para familiares,
+                            responsáveis ou equipes de apoio através de integração digital.
+                        </p>
+
+                        <p>
+                            O projeto busca unir acessibilidade, tecnologia e cuidado,
+                            proporcionando respostas rápidas em momentos críticos.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal Começar Projeto -->
+    <div id="reservar" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-icon">
+                <i class="fas fa-rocket"></i>
+            </div>
+            <h2>Iniciar Novo Projeto</h2>
+            <p>Estamos prontos para transformar sua ideia em realidade. Entre em contato para um orçamento gratuito.</p>
+            <div class="features-coming">
+                <div class="coming-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Orçamento gratuito em 24h</span>
+                </div>
+                <div class="coming-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Protótipo funcional em 7 dias</span>
+                </div>
+                <div class="coming-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Suporte técnico dedicado</span>
+                </div>
+            </div>
+            <a href="https://wa.me/5519999999999" target="_blank" rel="noopener noreferrer"
+                class="btn btn-primary modal-btn">Falar com Especialista</a>
+        </div>
+    </div>
+
+    <!-- Contato -->
+    <section id="contato" class="contact">
+        <div class="container">
+            <div class="section-head" style="margin-bottom: 2.5rem;">
+                <span class="eyebrow">Contato</span>
+                <h2>Vamos conversar</h2>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <span>Telefone</span>
+                    <p>(19) 80099-2569</p>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>E-mail</span>
+                    <p>contato@devsphare.com.br</p>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-location-dot"></i>
+                    <span>Endereço</span>
+                    <p>Rua Hermenegildo Pícoli Neto, 50 — Mococa/SP</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Equipe DevSphere -->
+    <section class="team">
+        <div class="container">
+            <div class="section-head" style="margin-bottom: 0;">
+                <span class="eyebrow">Time</span>
+                <h2>Nossa Equipe</h2>
+            </div>
+            <br>
+            <br>
+            <br>
+            <p class="team-subtitle">Os talentos por trás da DevSphare</p>
+
+            <div class="foto-grupo">
+                <img src="fotos/fotoemgrupo.jpeg" alt="Foto da equipe DevSphare" class="team-photo">
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p><i class="fas fa-code"></i> &copy; 2026 DevSphare. Desenvolvendo o futuro, linha por linha.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Menu mobile responsivo
+        const hamburger = document.querySelector('.hamburger');
+        const navMenu = document.querySelector('.nav-menu');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            navMenu.classList.toggle('active');
+        });
+
+        // Smooth scroll para links de navegação
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                hamburger.classList.remove('active');
+                navMenu.classList.remove('active');
+            });
+        });
+
+        // Modal
+        const modal = document.getElementById('reservar');
+        const btnReservar = document.querySelector('.btn-secondary');
+        const closeModal = document.querySelector('.close');
+        const modalBtn = document.querySelector('.modal-btn');
+
+        btnReservar.addEventListener('click', (e) => {
+            e.preventDefault();
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        });
+
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+
+        modalBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+
+        // Header scroll effect
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', () => {
+            header.classList.toggle('scrolled', window.scrollY > 60);
+        });
+
+        // Toggle descrição dos projetos
+        const toggleButtons = document.querySelectorAll('.toggle-btn');
+
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetId = button.getAttribute('data-target');
+                const target = document.getElementById(targetId);
+
+                if (target.style.display === 'none') {
+                    target.style.display = 'block';
+                    target.style.opacity = '0';
+
+                    setTimeout(() => {
+                        target.style.transition = 'opacity 0.5s ease';
+                        target.style.opacity = '1';
+                    }, 50);
+                } else {
+                    target.style.opacity = '0';
+
+                    setTimeout(() => {
+                        target.style.display = 'none';
+                    }, 300);
+                }
+            });
+        });
+
+        // Animação dos cards
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.features .feature-card, .info-box').forEach(el => {
+            el.style.transition = 'all 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,446 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+:root{
+
+    --vermelho:#e11d2e;
+    --vermelho-hover:#c51626;
+
+    --branco:#ffffff;
+    --cinza-claro:#f7f7f7;
+    --cinza:#e9e9e9;
+
+    --preto:#111111;
+    --texto:#444444;
+
+    --sombra:rgba(0,0,0,0.08);
+
+    --transition:all .3s ease;
+
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:var(--branco);
+    color:var(--preto);
+    overflow-x:hidden;
+}
+
+/* CONTAINER */
+
+.container{
+    width:100%;
+    max-width:1200px;
+    margin:auto;
+    padding:0 2rem;
+}
+
+/* HEADER */
+
+.header{
+    position:fixed;
+    top:0;
+    width:100%;
+    z-index:1000;
+    background:rgba(255,255,255,.96);
+    border-bottom:1px solid var(--cinza);
+    backdrop-filter:blur(10px);
+}
+
+.navbar{
+    max-width:1200px;
+    margin:auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:1.5rem 2rem;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:.7rem;
+    font-size:1.7rem;
+    font-weight:700;
+    color:var(--preto);
+}
+
+.logo i{
+    color:var(--vermelho);
+}
+
+.nav-menu{
+    display:flex;
+    gap:2rem;
+    list-style:none;
+}
+
+.nav-link{
+    text-decoration:none;
+    color:var(--preto);
+    font-weight:500;
+    transition:var(--transition);
+}
+
+.nav-link:hover{
+    color:var(--vermelho);
+}
+
+/* HERO */
+
+.hero{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:140px 2rem 4rem;
+
+    background:
+    radial-gradient(circle at top,
+    rgba(225,29,46,.08),
+    transparent 35%),
+    var(--branco);
+}
+
+.hero-content{
+    max-width:900px;
+}
+
+.tag{
+    display:inline-block;
+    padding:.8rem 1.5rem;
+    border-radius:50px;
+    background:#fff0f1;
+    color:var(--vermelho);
+    font-size:.95rem;
+    font-weight:600;
+    margin-bottom:2rem;
+}
+
+.hero-title{
+    font-size:clamp(3rem,7vw,5.5rem);
+    line-height:1.1;
+    margin-bottom:2rem;
+    color:var(--preto);
+}
+
+.hero-title span{
+    color:var(--vermelho);
+}
+
+.hero-subtitle{
+    font-size:1.2rem;
+    color:var(--texto);
+    line-height:1.8;
+    max-width:700px;
+    margin:auto;
+    margin-bottom:3rem;
+}
+
+.hero-buttons{
+    display:flex;
+    justify-content:center;
+    gap:1.5rem;
+    flex-wrap:wrap;
+}
+
+/* BUTTONS */
+
+.btn{
+    padding:1rem 2.2rem;
+    border-radius:50px;
+    text-decoration:none;
+    font-weight:600;
+    display:inline-flex;
+    align-items:center;
+    gap:.8rem;
+    transition:var(--transition);
+}
+
+.btn-primary{
+    background:var(--vermelho);
+    color:white;
+    box-shadow:0 10px 25px rgba(225,29,46,.18);
+}
+
+.btn-primary:hover{
+    background:var(--vermelho-hover);
+    transform:translateY(-3px);
+}
+
+.btn-secondary{
+    border:2px solid var(--vermelho);
+    color:var(--vermelho);
+    background:white;
+}
+
+.btn-secondary:hover{
+    background:var(--vermelho);
+    color:white;
+}
+
+/* SECTIONS */
+
+.about,
+.tech,
+.cta{
+    background:var(--cinza-claro);
+}
+
+.steps,
+.benefits{
+    background:var(--branco);
+}
+
+.about,
+.steps,
+.tech,
+.benefits{
+    padding:100px 0;
+}
+
+/* TITLES */
+
+.section-title{
+    text-align:center;
+    margin-bottom:5rem;
+}
+
+.section-title h2{
+    font-size:clamp(2.5rem,5vw,4rem);
+    color:var(--preto);
+}
+
+/* GRIDS */
+
+.about-grid,
+.steps-grid,
+.benefits-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:2rem;
+}
+
+.tech-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:1.5rem;
+}
+
+/* CARDS */
+
+.about-card,
+.step-card,
+.benefit-card,
+.tech-card{
+
+    background:white;
+    border:1px solid var(--cinza);
+    border-radius:25px;
+
+    box-shadow:0 5px 20px var(--sombra);
+
+    transition:var(--transition);
+}
+
+.about-card,
+.step-card,
+.benefit-card{
+    padding:3rem 2rem;
+    text-align:center;
+}
+
+.tech-card{
+    padding:2rem;
+    text-align:center;
+    font-weight:600;
+}
+
+/* CARD HOVER */
+
+.about-card:hover,
+.step-card:hover,
+.benefit-card:hover,
+.tech-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:
+    0 15px 40px rgba(225,29,46,.12);
+
+}
+
+/* ICONS */
+
+.about-card i,
+.step-card i,
+.benefit-card i{
+
+    font-size:3rem;
+    color:var(--vermelho);
+    margin-bottom:1.5rem;
+
+}
+
+/* TEXT */
+
+.about-card p,
+.step-card p,
+.benefit-card p{
+    color:var(--texto);
+    line-height:1.7;
+}
+
+.about-card h3,
+.step-card h3,
+.benefit-card h3{
+    margin-bottom:1rem;
+}
+
+/* STEP */
+
+.step-card{
+    position:relative;
+}
+
+.step-number{
+    position:absolute;
+    top:20px;
+    right:20px;
+    font-size:1.5rem;
+    font-weight:700;
+    color:rgba(0,0,0,.08);
+}
+
+/* TECH */
+
+.tech-card:hover{
+    background:var(--vermelho);
+    color:white;
+}
+
+/* CTA */
+
+.cta{
+    padding:120px 0;
+    text-align:center;
+}
+
+.cta h2{
+    font-size:clamp(2.5rem,5vw,4rem);
+    margin-bottom:1.5rem;
+}
+
+.cta p{
+    font-size:1.1rem;
+    color:var(--texto);
+    margin-bottom:3rem;
+}
+
+/* FOOTER */
+
+.footer{
+    background:white;
+    border-top:1px solid var(--cinza);
+    padding:2rem;
+    text-align:center;
+    color:var(--texto);
+}
+
+/* RESPONSIVO */
+
+/* ========================= */
+/* 📱 CELULAR (até 768px) */
+/* ========================= */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  nav h2 {
+    font-size: 1.2rem;
+  }
+
+  #menu {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    padding: 1rem 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    gap: 0;
+  }
+
+  #menu.ativo {
+    display: flex;
+  }
+
+  #menu li {
+    padding: 1rem 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .menu-mobile {
+    display: block;
+  }
+
+  .banner h1 {
+    font-size: 2.2rem;
+  }
+
+  .banner p {
+    font-size: 1rem;
+  }
+
+  .container {
+    flex-direction: column;
+  }
+
+  .cardapio {
+    grid-template-columns: 1fr;
+  }
+
+  /* img {
+    width: 10%;
+    height: auto;
+  } */
+}
+
+/* ========================= */
+/* 📲 TABLET (até 1024px) */
+/* ========================= */
+@media (max-width: 1024px) {
+  .banner h1 {
+    font-size: 2.8rem;
+  }
+
+  .cardapio {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .card {
+    width: 100%;
+  }
+}
+
+/* ========================= */
+/* 💻 TELAS GRANDES */
+/* ========================= */
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1200px;
+    margin: auto;
+  }
+}
