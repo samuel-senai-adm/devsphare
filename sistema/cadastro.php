@@ -40,19 +40,36 @@ session_start();
 
         </div>
 
-        <?php if(isset($_GET['erro'])): ?>
+
+        <!-- MENSAGEM DE ERRO -->
+
+        <?php if (isset($_GET['erro'])): ?>
 
             <div class="erro">
-                Erro ao realizar cadastro.
+
+                <?php if ($_GET['erro'] == 'email'): ?>
+
+                    Este e-mail já está cadastrado.
+
+                <?php else: ?>
+
+                    Erro ao realizar cadastro.
+
+                <?php endif; ?>
+
             </div>
 
         <?php endif; ?>
+
+
+        <!-- FORMULÁRIO DE CADASTRO -->
 
         <form class="form-box"
             action="controller/UsuarioController.php"
             method="POST">
 
             <h2>Cadastrar</h2>
+
 
             <div class="input-group">
 
@@ -65,6 +82,7 @@ session_start();
 
             </div>
 
+
             <div class="input-group">
 
                 <i class="fas fa-envelope"></i>
@@ -75,6 +93,7 @@ session_start();
                     required>
 
             </div>
+
 
             <div class="input-group">
 
@@ -87,6 +106,7 @@ session_start();
 
             </div>
 
+
             <div class="input-group">
 
                 <i class="fas fa-id-card"></i>
@@ -98,6 +118,7 @@ session_start();
 
             </div>
 
+
             <button type="submit"
                 name="cadastrar"
                 class="btn">
@@ -107,6 +128,7 @@ session_start();
             </button>
 
         </form>
+
 
         <div class="toggle">
 
@@ -120,4 +142,4 @@ session_start();
 
 </body>
 
-</html> 
+</html>

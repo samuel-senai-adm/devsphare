@@ -1,18 +1,43 @@
 <?php
 
-class Usuario {
+class Usuario
+{
 
     private $conn;
 
-    public function __construct($db){
+    public function __construct($db)
+    {
         $this->conn = $db;
     }
+
+
+    /* =========================
+       VERIFICAR EMAIL
+    ========================= */
+
+    public function emailExiste($email)
+    {
+
+        $sql = "SELECT id FROM usuarios WHERE email = ?";
+
+        $stmt = $this->conn->prepare($sql);
+
+        $stmt->bind_param("s", $email);
+
+        $stmt->execute();
+
+        $resultado = $stmt->get_result();
+
+        return $resultado->num_rows > 0;
+    }
+
 
     /* =========================
        CADASTRO
     ========================= */
 
-    public function cadastrar($nome, $email, $senha, $cpf){
+    public function cadastrar($nome, $email, $senha, $cpf)
+    {
 
         $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
 
@@ -33,11 +58,13 @@ class Usuario {
         return $stmt->execute();
     }
 
+
     /* =========================
        LOGIN
     ========================= */
 
-    public function login($email, $senha){
+    public function login($email, $senha)
+    {
 
         $sql = "SELECT * FROM usuarios
                 WHERE email = ?";
@@ -50,11 +77,11 @@ class Usuario {
 
         $resultado = $stmt->get_result();
 
-        if($resultado->num_rows > 0){
+        if ($resultado->num_rows > 0) {
 
             $usuario = $resultado->fetch_assoc();
 
-            if(password_verify($senha, $usuario['senha'])){
+            if (password_verify($senha, $usuario['senha'])) {
                 return $usuario;
             }
         }
