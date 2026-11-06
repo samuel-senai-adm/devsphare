@@ -1,6 +1,7 @@
 <?php
 
-session_start();
+require_once __DIR__ . '/../config/sessao.php';
+iniciarSessao();
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -75,6 +76,9 @@ if (isset($_POST['login'])) {
     $dadosUsuario = $usuario->login($email, $senha);
 
     if ($dadosUsuario) {
+
+        // Novo ID de sessão a cada login (evita sequestro de sessão)
+        session_regenerate_id(true);
 
         // Dados do usuário salvos na sessão
         $_SESSION['usuario_id'] = $dadosUsuario['id'];

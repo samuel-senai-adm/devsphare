@@ -1,20 +1,36 @@
 <?php
-session_start();
+require_once __DIR__ . '/config/sessao.php';
+iniciarSessao();
 
-/*
- * ATENÇÃO: verificação de login ainda desativada (mantida como estava).
- * Será corrigida na etapa de segurança, usando $_SESSION['usuario_id'].
- *
-if (!isset($_SESSION['usuario'])) {
-    header("Location: login.php");
+/* Só entra quem fez login */
+if (empty($_SESSION['usuario_id'])) {
+    header('Location: login.php');
     exit;
 }
-*/
 
-$usuario = $_SESSION['usuario_nome'] ?? 'Usuário';
-$usuario = trim($usuario) !== '' ? trim($usuario) : 'Usuário';
+require_once __DIR__ . '/config/conexao.php';
+
+/* Dados do usuário direto do banco (nome atualizado, perfil, chaveiro) */
+$idSessao = (int) $_SESSION['usuario_id'];
+$stmt = $conn->prepare('SELECT nome, email, perfil, rfid_uid, created_at FROM usuarios WHERE id = ?');
+$stmt->bind_param('i', $idSessao);
+$stmt->execute();
+$conta = $stmt->get_result()->fetch_assoc();
+
+if (!$conta) {
+    /* usuário apagado do banco: encerra a sessão */
+    $_SESSION = [];
+    session_destroy();
+    header('Location: login.php');
+    exit;
+}
+
+$usuario = trim($conta['nome']) !== '' ? trim($conta['nome']) : 'Usuário';
 $primeiroNome = explode(' ', $usuario)[0];
 $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
+$tipoConta = $conta['perfil'] === 'admin' ? 'Administrador' : 'Cliente';
+$temChaveiro = !empty($conta['rfid_uid']);
+$clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_at'])) : '-';
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -122,7 +138,7 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
                 <span class="avatar" aria-hidden="true"><?= htmlspecialchars($inicial) ?></span>
                 <span class="usuario-texto">
                     <strong><?= htmlspecialchars($usuario) ?></strong>
-                    <small>Cliente</small>
+                    <small><?= $tipoConta ?></small>
                 </span>
                 <i class="fas fa-chevron-down seta" aria-hidden="true"></i>
             </button>
@@ -130,7 +146,7 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
             <div class="menu-usuario" id="menuUsuario" role="menu" hidden>
                 <div class="menu-usuario-cabecalho">
                     <strong><?= htmlspecialchars($usuario) ?></strong>
-                    <small>Conta de cliente</small>
+                    <small><?= htmlspecialchars($conta['email']) ?></small>
                 </div>
                 <button type="button" role="menuitem" data-ir="perfil">
                     <i class="fas fa-user" aria-hidden="true"></i> Meu perfil
@@ -244,7 +260,7 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
                         <div class="painel-topo">
                             <div>
                                 <h2 id="tituloAtividade">Atividade recente</h2>
-                                <p>Suas últimas reservas</p>
+                                <p>Suas reservas e aberturas do armário</p>
                             </div>
                         </div>
                         <ul class="atividade" id="listaAtividade"></ul>
@@ -442,8 +458,8 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
                         <p id="qrQuando">-</p>
                         <div class="aviso aviso-neutro">
                             <i class="fas fa-microchip" aria-hidden="true"></i>
-                            <span>A leitura no armário (QR Code ou RFID) ainda está em fase de integração.
-                                Este código identifica sua reserva no sistema.</span>
+                            <span>Aproxime este código do leitor do armário. A porta libera a partir de
+                                10 minutos antes do início da reserva. Se tiver chaveiro, pode usá-lo no lugar do QR.</span>
                         </div>
                     </div>
                 </div>
@@ -466,22 +482,30 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
                     <div class="avatar grande" aria-hidden="true"><?= htmlspecialchars($inicial) ?></div>
                     <div>
                         <h2><?= htmlspecialchars($usuario) ?></h2>
-                        <p>Cliente SmartLocker</p>
+                        <p><?= $tipoConta ?> SmartLocker desde <?= $clienteDesde ?></p>
                     </div>
                 </div>
 
                 <div class="perfil-grade">
                     <div class="dado">
-                        <span><i class="fas fa-user" aria-hidden="true"></i> Nome do cliente</span>
-                        <strong><?= htmlspecialchars($usuario) ?></strong>
+                        <span><i class="fas fa-envelope" aria-hidden="true"></i> E-mail</span>
+                        <strong><?= htmlspecialchars($conta['email']) ?></strong>
                     </div>
                     <div class="dado">
-                        <span><i class="fas fa-user-tag" aria-hidden="true"></i> Tipo de usuário</span>
-                        <strong>Cliente</strong>
+                        <span><i class="fas fa-user-tag" aria-hidden="true"></i> Tipo de conta</span>
+                        <strong><?= $tipoConta ?></strong>
                     </div>
                     <div class="dado">
-                        <span><i class="fas fa-circle-check" aria-hidden="true"></i> Status da conta</span>
-                        <strong class="texto-verde">Ativo</strong>
+                        <span><i class="fas fa-id-card" aria-hidden="true"></i> Chaveiro RFID</span>
+                        <?php if ($temChaveiro): ?>
+                            <strong class="texto-verde">Vinculado</strong>
+                        <?php else: ?>
+                            <strong>Não vinculado</strong>
+                        <?php endif; ?>
+                    </div>
+                    <div class="dado">
+                        <span><i class="fas fa-clock-rotate-left" aria-hidden="true"></i> Reservas feitas</span>
+                        <strong id="perfilTotalReservas">-</strong>
                     </div>
                 </div>
             </div>
@@ -576,19 +600,21 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
 
     /* =====================================================
        CONFIGURAÇÃO
-       Os dados ainda ficam no localStorage (como antes).
-       A troca para o banco MySQL será feita na próxima etapa.
+       Todos os dados vêm do banco MySQL pela API (pasta api/).
+       A mesma API é usada pelo aplicativo Flutter e pelo ESP32.
     ===================================================== */
 
-    var CHAVE_RESERVA   = 'smartlocker_reserva';
-    var CHAVE_HISTORICO = 'smartlocker_historico';
+    var API = 'api/';
 
-    var ARMARIOS = [
-        { id: '01', nome: 'Armário 01', local: 'Bloco A', ocupado: false },
-        { id: '02', nome: 'Armário 02', local: 'Bloco A', ocupado: true  },
-        { id: '03', nome: 'Armário 03', local: 'Bloco A', ocupado: false },
-        { id: '04', nome: 'Armário 04', local: 'Bloco B', ocupado: false }
-    ];
+    /* preenchido por carregarDados() */
+    var ARMARIOS = [];
+    var dados = {
+        reserva: null,
+        historico: [],   /* do mais antigo para o mais recente */
+        acessos: [],
+        carregado: false,
+        erro: false
+    };
 
     var TITULOS = {
         inicio: 'Início',
@@ -614,25 +640,6 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
     ===================================================== */
 
     function $(id) { return document.getElementById(id); }
-
-    function lerJSON(chave, padrao) {
-        try {
-            var bruto = localStorage.getItem(chave);
-            if (!bruto) { return padrao; }
-            var valor = JSON.parse(bruto);
-            return valor === null ? padrao : valor;
-        } catch (e) {
-            return padrao;
-        }
-    }
-
-    function salvarJSON(chave, valor) {
-        try { localStorage.setItem(chave, JSON.stringify(valor)); } catch (e) {}
-    }
-
-    function removerChave(chave) {
-        try { localStorage.removeItem(chave); } catch (e) {}
-    }
 
     function esc(texto) {
         var div = document.createElement('div');
@@ -707,55 +714,115 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
     }
 
     /* =====================================================
+       API (banco de dados)
+    ===================================================== */
+
+    /* GET quando não há corpo; POST com JSON quando há. */
+    function api(caminho, corpo) {
+        var opcoes = { credentials: 'same-origin', headers: { 'Accept': 'application/json' } };
+        if (corpo !== undefined) {
+            opcoes.method = 'POST';
+            opcoes.headers['Content-Type'] = 'application/json';
+            opcoes.body = JSON.stringify(corpo);
+        }
+
+        return fetch(API + caminho, opcoes).then(function (resp) {
+            if (resp.status === 401) {
+                location.href = 'login.php?expirou=1';
+                throw new Error('sessao');
+            }
+            return resp.json().catch(function () {
+                return { ok: false, erro: 'Resposta inválida do servidor.' };
+            }).then(function (json) {
+                if (!json.ok) {
+                    var erro = new Error(json.erro || 'Não foi possível concluir a ação.');
+                    erro.daApi = true;
+                    throw erro;
+                }
+                return json;
+            });
+        });
+    }
+
+    function mensagemDeErro(e) {
+        return e && e.daApi ? e.message : 'Sem conexão com o servidor. Verifique a internet e tente de novo.';
+    }
+
+    function converterArmario(a) {
+        return { id: a.numero, dbId: a.id, nome: a.nome, local: a.localizacao, situacao: a.status };
+    }
+
+    function converterReserva(r) {
+        if (!r) { return null; }
+        return {
+            id: r.id,
+            armario: r.armario,
+            numero: r.numero,
+            localizacao: r.localizacao,
+            data: r.data,
+            inicio: r.inicio,
+            fim: r.fim,
+            status: r.status,
+            criadaEm: r.criada_em,
+            qr: r.qr || ''
+        };
+    }
+
+    var carregando = null;
+
+    function carregarDados(silencioso) {
+        if (carregando) { return carregando; }
+
+        carregando = Promise.all([
+            api('armarios.php'),
+            api('minha_reserva.php'),
+            api('historico.php')
+        ]).then(function (res) {
+            ARMARIOS = res[0].armarios.map(converterArmario);
+            dados.reserva = converterReserva(res[1].reserva);
+            dados.historico = res[2].reservas.map(converterReserva).reverse();
+            dados.acessos = res[2].acessos || [];
+            dados.carregado = true;
+            dados.erro = false;
+            atualizarDashboard();
+        }).catch(function (e) {
+            if (e.message === 'sessao') { return; }
+            dados.erro = true;
+            if (!dados.carregado) { atualizarDashboard(); }
+            if (!silencioso) { toast(mensagemDeErro(e), 'erro'); }
+        }).then(function () {
+            carregando = null;
+        });
+
+        return carregando;
+    }
+
+    /* =====================================================
        DADOS (RESERVA ATIVA + HISTÓRICO)
     ===================================================== */
 
-    function obterReserva() {
-        var r = lerJSON(CHAVE_RESERVA, null);
-        if (!r || typeof r !== 'object' || !r.data || !r.inicio || !r.fim) { return null; }
-        return r;
-    }
+    function obterReserva() { return dados.reserva; }
 
-    function obterHistorico() {
-        var h = lerJSON(CHAVE_HISTORICO, []);
-        return Array.isArray(h) ? h : [];
-    }
+    function obterHistorico() { return dados.historico; }
 
-    function mesmaReserva(a, b) {
-        if (a.criadaEm && b.criadaEm) { return a.criadaEm === b.criadaEm; }
-        return a.armario === b.armario && a.data === b.data &&
-               a.inicio === b.inicio && a.fim === b.fim;
-    }
-
-    function atualizarStatusNoHistorico(reserva, novoStatus) {
-        var historico = obterHistorico().map(function (item) {
-            if (item.status === 'Ativa' && mesmaReserva(item, reserva)) {
-                item.status = novoStatus;
-                if (novoStatus === 'Cancelada') { item.canceladaEm = new Date().toISOString(); }
-                if (novoStatus === 'Concluída') { item.concluidaEm = new Date().toISOString(); }
-            }
-            return item;
-        });
-        salvarJSON(CHAVE_HISTORICO, historico);
-    }
-
-    /* Reserva cujo horário de término já passou vira "Concluída". */
+    /* Quando o horário de término passa, o servidor marca a reserva como concluída. */
     function verificarExpiracao() {
         var reserva = obterReserva();
         if (!reserva) { return false; }
 
         if (paraDate(reserva.data, reserva.fim) <= new Date()) {
-            atualizarStatusNoHistorico(reserva, 'Concluída');
-            removerChave(CHAVE_RESERVA);
+            dados.reserva = null;
             toast('Sua reserva do ' + reserva.armario + ' foi concluída.', 'info');
+            carregarDados(true);
             return true;
         }
         return false;
     }
 
-    function statusDoArmario(armario, reserva) {
-        if (reserva && reserva.armario === armario.nome) { return 'minha'; }
-        return armario.ocupado ? 'ocupado' : 'livre';
+    /* "manutencao" aparece como indisponível para o cliente */
+    function statusDoArmario(armario) {
+        if (armario.situacao === 'minha') { return 'minha'; }
+        return armario.situacao === 'livre' ? 'livre' : 'ocupado';
     }
 
     /* =====================================================
@@ -963,7 +1030,7 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
         }
 
         var armario = ARMARIOS.filter(function (a) { return a.id === id; })[0];
-        if (!armario || armario.ocupado) { return; }
+        if (!armario || statusDoArmario(armario) !== 'livre') { return; }
 
         estado.armarioSelecionado = armario;
 
@@ -1063,34 +1130,32 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
         var armario = estado.armarioSelecionado;
         if (!armario) { return; }
 
-        var reserva = {
-            armario: armario.nome,
-            localizacao: armario.local,
-            data: data,
-            inicio: inicio,
-            fim: fim,
-            status: 'Ativa',
-            criadaEm: new Date().toISOString()
-        };
-
-        salvarJSON(CHAVE_RESERVA, reserva);
-
-        var historico = obterHistorico();
-        historico.push(reserva);
-        salvarJSON(CHAVE_HISTORICO, historico);
-
         var botao = $('btnConfirmar');
         botao.disabled = true;
         botao.classList.add('carregando');
-        mostrarMensagem('Reserva realizada com sucesso!', 'sucesso');
-        atualizarDashboard();
+        limparMensagem();
 
-        setTimeout(function () {
-            botao.classList.remove('carregando');
-            fecharModal('modalReserva');
-            irPara('reserva');
-            toast('Reserva do ' + reserva.armario + ' confirmada.', 'sucesso');
-        }, 800);
+        api('reservar.php', { locker_id: armario.dbId, data: data, inicio: inicio, fim: fim })
+            .then(function (json) {
+                var reserva = converterReserva(json.reserva);
+                dados.reserva = reserva;
+                mostrarMensagem('Reserva realizada com sucesso!', 'sucesso');
+                carregarDados(true);
+
+                setTimeout(function () {
+                    botao.classList.remove('carregando');
+                    fecharModal('modalReserva');
+                    irPara('reserva');
+                    toast('Reserva do ' + reserva.armario + ' confirmada.', 'sucesso');
+                }, 700);
+            })
+            .catch(function (e) {
+                botao.classList.remove('carregando');
+                botao.disabled = false;
+                if (e.message === 'sessao') { return; }
+                mostrarMensagem(mensagemDeErro(e), 'erro');
+                carregarDados(true); /* o armário pode ter sido reservado por outra pessoa */
+            });
     }
 
     $('btnConfirmar').addEventListener('click', confirmarReserva);
@@ -1141,16 +1206,31 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
 
     $('btnConfirmarCancelar').addEventListener('click', function () {
         var reserva = obterReserva();
-        fecharModal('modalCancelar');
+        var botao = this;
 
-        if (!reserva) { atualizarDashboard(); return; }
+        if (!reserva) { fecharModal('modalCancelar'); atualizarDashboard(); return; }
 
-        atualizarStatusNoHistorico(reserva, 'Cancelada');
-        removerChave(CHAVE_RESERVA);
+        botao.disabled = true;
+        botao.classList.add('carregando');
 
-        atualizarDashboard();
-        toast('Reserva cancelada com sucesso.', 'sucesso');
-        irPara('reserva');
+        api('cancelar_reserva.php', { reserva_id: reserva.id })
+            .then(function () {
+                dados.reserva = null;
+                fecharModal('modalCancelar');
+                toast('Reserva cancelada com sucesso.', 'sucesso');
+                irPara('reserva');
+                return carregarDados(true);
+            })
+            .catch(function (e) {
+                if (e.message === 'sessao') { return; }
+                fecharModal('modalCancelar');
+                toast(mensagemDeErro(e), 'erro');
+                carregarDados(true);
+            })
+            .then(function () {
+                botao.disabled = false;
+                botao.classList.remove('carregando');
+            });
     });
 
     /* =====================================================
@@ -1194,8 +1274,29 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
         '</article>';
     }
 
+    /* enquanto carrega pela primeira vez, ou se o servidor não responder */
+    function htmlEstadoCarregamento() {
+        if (dados.erro) {
+            return '<div class="vazio vazio-grade">' +
+                '<div class="vazio-icone"><i class="fas fa-plug-circle-xmark" aria-hidden="true"></i></div>' +
+                '<h3>Não foi possível carregar os armários</h3>' +
+                '<p>Verifique a conexão com o servidor e tente de novo.</p>' +
+                '<button class="btn btn-secundario" type="button" data-recarregar>Tentar de novo</button>' +
+            '</div>';
+        }
+        return '<div class="carregando-dados" role="status">' +
+            '<span class="girando" aria-hidden="true"></span> Carregando armários…</div>';
+    }
+
     function renderArmarios() {
         var reserva = obterReserva();
+
+        if (!dados.carregado) {
+            var estadoHtml = htmlEstadoCarregamento();
+            trocarHTML($('gradeResumo'), estadoHtml);
+            trocarHTML($('gradeCompleta'), estadoHtml);
+            return;
+        }
 
         /* grade resumida do início: todos os armários */
         trocarHTML($('gradeResumo'), ARMARIOS.map(function (a) { return htmlArmario(a, reserva); }).join(''));
@@ -1276,6 +1377,13 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
     document.addEventListener('click', function (e) {
         var reservar = e.target.closest('[data-reservar]');
         if (reservar) { abrirReserva(reservar.getAttribute('data-reservar')); return; }
+
+        if (e.target.closest('[data-recarregar]')) {
+            dados.erro = false;
+            atualizarDashboard();
+            carregarDados();
+            return;
+        }
 
         if (e.target.closest('[data-limpar-filtros]')) {
             estado.busca = '';
@@ -1415,17 +1523,8 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
         $('qrArmario').textContent = reserva.armario + (reserva.localizacao ? ' · ' + reserva.localizacao : '');
         $('qrQuando').textContent = formatarData(reserva.data) + ', das ' + reserva.inicio + ' às ' + reserva.fim;
 
-        var conteudo = JSON.stringify({
-            armario: reserva.armario,
-            data: reserva.data,
-            inicio: reserva.inicio,
-            fim: reserva.fim,
-            ref: reserva.criadaEm || ''
-        }).replace(/[\u0080-￿]/g, function (c) {
-            /* a biblioteca qrcodejs falha com acentos ("Armário");
-               escapar como \uXXXX mantém o mesmo JSON e evita o erro */
-            return '\\u' + ('000' + c.charCodeAt(0).toString(16)).slice(-4);
-        });
+        /* "SMARTLOCKER:<código aleatório>" gerado pelo servidor; o leitor valida em api/validar_acesso.php */
+        var conteudo = reserva.qr;
 
         if (moldura.getAttribute('data-conteudo') === conteudo) { return; }
 
@@ -1433,6 +1532,7 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
         moldura.setAttribute('data-conteudo', conteudo);
 
         try {
+            if (!conteudo) { throw new Error('Reserva sem código'); }
             if (typeof QRCode === 'undefined') { throw new Error('QRCode indisponível'); }
             new QRCode(moldura, {
                 text: conteudo,
@@ -1458,6 +1558,7 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
         var lista = $('listaHistorico');
 
         $('contadorHistorico').textContent = historico.length;
+        $('perfilTotalReservas').textContent = dados.carregado ? historico.length : '-';
 
         var contas = { todas: historico.length, 'Ativa': 0, 'Concluída': 0, 'Cancelada': 0 };
         historico.forEach(function (r) {
@@ -1498,26 +1599,49 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
         renderAtividade(historico);
     }
 
+    var NOME_METODO = { rfid: 'chaveiro RFID', qrcode: 'QR Code', senha: 'senha', app: 'aplicativo' };
+
+    /* Junta reservas e aberturas do armário (QR / RFID) numa linha do tempo. */
     function renderAtividade(historico) {
-        var ultimos = historico.slice(-4).reverse();
+        var eventos = historico.map(function (r) {
+            var status = CLASSE_STATUS[r.status] || 'ativa';
+            var verbo = status === 'cancelada' ? 'Reserva cancelada'
+                      : status === 'concluida' ? 'Reserva concluída' : 'Reserva ativa';
+            return {
+                quando: new Date(r.criadaEm || 0).getTime() || 0,
+                html: '<li class="' + status + '">' +
+                    '<span class="atividade-icone"><i class="fas ' + ICONE_STATUS[status] + '" aria-hidden="true"></i></span>' +
+                    '<div><strong>' + verbo + ' · ' + esc(r.armario) + '</strong>' +
+                    '<small>' + esc(formatarData(r.data)) + ', ' + esc(r.inicio) + ' às ' + esc(r.fim) + '</small></div>' +
+                '</li>'
+            };
+        }).concat(dados.acessos.map(function (a) {
+            var liberado = a.resultado === 'liberado';
+            var titulo = liberado
+                ? (a.tipo === 'saida' ? 'Retirada no ' : 'Porta aberta no ') + a.armario
+                : 'Acesso negado no ' + a.armario;
+            return {
+                quando: new Date(a.data_hora).getTime() || 0,
+                html: '<li class="' + (liberado ? 'acesso-liberado' : 'acesso-negado') + '">' +
+                    '<span class="atividade-icone"><i class="fas ' + (liberado ? 'fa-door-open' : 'fa-ban') + '" aria-hidden="true"></i></span>' +
+                    '<div><strong>' + esc(titulo) + '</strong>' +
+                    '<small>' + esc(formatarDataHora(a.data_hora)) + ', pelo ' + esc(NOME_METODO[a.metodo] || a.metodo) + '</small></div>' +
+                '</li>'
+            };
+        }));
+
+        eventos.sort(function (a, b) { return b.quando - a.quando; });
+        var ultimos = eventos.slice(0, 5);
 
         if (!ultimos.length) {
             trocarHTML($('listaAtividade'),
                 '<li class="atividade-vazia"><i class="fas fa-clock" aria-hidden="true"></i>' +
-                'Nenhuma atividade ainda. Suas reservas aparecerão aqui.</li>');
+                (dados.carregado ? 'Nenhuma atividade ainda. Suas reservas e acessos aparecerão aqui.' : 'Carregando…') +
+                '</li>');
             return;
         }
 
-        trocarHTML($('listaAtividade'), ultimos.map(function (r) {
-            var status = CLASSE_STATUS[r.status] || 'ativa';
-            var verbo = status === 'cancelada' ? 'Reserva cancelada'
-                      : status === 'concluida' ? 'Reserva concluída' : 'Reserva ativa';
-            return '<li class="' + status + '">' +
-                '<span class="atividade-icone"><i class="fas ' + ICONE_STATUS[status] + '" aria-hidden="true"></i></span>' +
-                '<div><strong>' + verbo + ' · ' + esc(r.armario) + '</strong>' +
-                '<small>' + esc(formatarData(r.data)) + ', ' + esc(r.inicio) + ' às ' + esc(r.fim) + '</small></div>' +
-            '</li>';
-        }).join(''));
+        trocarHTML($('listaAtividade'), ultimos.map(function (e) { return e.html; }).join(''));
     }
 
     $('filtrosHistorico').addEventListener('click', function (e) {
@@ -1541,9 +1665,9 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
         renderHistorico();
     }
 
-    /* sincroniza com outras abas */
-    window.addEventListener('storage', function (e) {
-        if (e.key === CHAVE_RESERVA || e.key === CHAVE_HISTORICO) { atualizarDashboard(); }
+    /* ao voltar para a aba, busca o estado atualizado no servidor */
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) { carregarDados(true); }
     });
 
     /* =====================================================
@@ -1560,16 +1684,23 @@ $inicial = mb_strtoupper(mb_substr($usuario, 0, 1, 'UTF-8'), 'UTF-8');
     }
 
     atualizarTopo();
-    atualizarDashboard();
+    atualizarDashboard();   /* mostra "carregando" */
+    carregarDados();        /* busca armários, reserva e histórico no banco */
 
     var inicial = location.hash.replace('#', '');
     estado.view = null;
     irPara(TITULOS[inicial] ? inicial : 'inicio', false);
 
+    /* contagem regressiva da reserva a cada 20 s; dados do banco a cada 30 s
+       (assim aparece quando outra pessoa reserva ou quando o leitor abre a porta) */
     setInterval(function () {
         atualizarTopo();
         atualizarDashboard();
     }, 20000);
+
+    setInterval(function () {
+        if (!document.hidden) { carregarDados(true); }
+    }, 30000);
 
 })();
 </script>

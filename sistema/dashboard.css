@@ -2503,3 +2503,33 @@ h1, h2, h3 {
         transition-duration: 0.01ms !important;
     }
 }
+/* =========================================================
+   DADOS DO BANCO: carregando, erro e acessos (QR / RFID)
+   ========================================================= */
+
+.carregando-dados {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 36px 16px;
+    font-size: 13.5px;
+    color: var(--cinza);
+}
+
+.girando {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--borda);
+    border-top-color: var(--vermelho);
+    border-radius: 50%;
+    animation: girar 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .girando { animation-duration: 2.4s; }
+}
+
+.atividade .acesso-liberado .atividade-icone { background: var(--verde-suave); color: var(--verde); }
+.atividade .acesso-negado .atividade-icone   { background: var(--ambar-suave); color: var(--ambar); }

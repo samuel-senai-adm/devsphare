@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/config/sessao.php';
+iniciarSessao();
 ?>
 
 <!DOCTYPE html>
@@ -44,6 +45,15 @@ session_start();
 
             <div class="erro">
                 Email ou senha incorretos.
+            </div>
+
+        <?php endif; ?>
+
+
+        <?php if(isset($_GET['expirou'])): ?>
+
+            <div class="erro">
+                Sua sessão expirou. Entre novamente.
             </div>
 
         <?php endif; ?>

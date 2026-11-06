@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/config/sessao.php';
+iniciarSessao();
 
 // Remove todas as variáveis da sessão
 $_SESSION = [];

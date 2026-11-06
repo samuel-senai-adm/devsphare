@@ -1,0 +1,18 @@
+# senhas e configuração de cada máquina
+sistema/config/config.local.php
+
+# sessões PHP criadas pelo site
+sistema/.sessoes/
+
+# logs e backups
+error_log
+*.zip
+
+# Flutter (se o projeto completo ficar aqui)
+app_flutter/build/
+app_flutter/.dart_tool/
+
+leitor.php
+
+# cópia extraída do zip de atualização (não é o projeto)
+smartlocker_atualizado/
