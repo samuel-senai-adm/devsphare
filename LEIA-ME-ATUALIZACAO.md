@@ -1,5 +1,7 @@
 # SmartLocker — atualização de 04/11/2026
 
+> **Novo (06/11/2026):** painel administrativo e níveis de acesso. Veja [LEIA-ME-ADMIN.md](LEIA-ME-ADMIN.md).
+
 O dashboard agora usa o **banco MySQL de verdade** (o localStorage saiu), e a pasta
 `sistema/api/` virou uma API que atende **o site, o app Flutter e, depois, o ESP32**.
 
