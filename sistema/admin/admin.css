@@ -1,0 +1,249 @@
+/* =========================================================
+   SMARTLOCKER - PAINEL ADMINISTRATIVO
+   Complementa ../dashboard.css (mesmas cores, fontes e componentes).
+   Aqui só entram peças que o dashboard do cliente não tinha: tabelas,
+   selects e os selos de perfil/bloqueio.
+   ========================================================= */
+
+.logo-texto span.selo-admin {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #ff8a95;
+    font-weight: 600;
+}
+
+/* Botões do topo das views */
+.view-cabecalho .btn {
+    flex-shrink: 0;
+}
+
+/* ---------------- Selos extras ---------------- */
+.badge.admin      { background: var(--grafite); color: #fff; }
+.badge.usuario    { background: var(--cinza-claro); color: var(--texto-2); }
+.badge.bloqueado  { background: var(--vermelho-suave); color: var(--vermelho-escuro); }
+.badge.manutencao { background: var(--ambar-suave); color: var(--ambar); }
+.badge.voce       { background: transparent; border: 1px solid var(--borda); color: var(--cinza); }
+
+/* ---------------- Grade de números ---------------- */
+.stats + .stats {
+    margin-top: -6px;
+}
+
+.stat small {
+    display: block;
+    font-size: 12px;
+    color: var(--cinza-2);
+}
+
+/* ---------------- Tabelas ---------------- */
+.tabela-rolagem {
+    overflow-x: auto;
+    margin: 0 -22px -22px;
+    border-top: 1px solid var(--borda);
+}
+
+.painel.so-tabela {
+    overflow: hidden;
+}
+
+.painel.so-tabela .tabela-rolagem {
+    margin-top: -22px;
+    border-top: 0;
+}
+
+.tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.tabela th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--cinza);
+    background: var(--fundo);
+    white-space: nowrap;
+}
+
+.tabela td {
+    padding: 13px 16px;
+    border-top: 1px solid var(--borda);
+    vertical-align: middle;
+}
+
+.tabela tbody tr:hover {
+    background: #fafbfc;
+}
+
+.tabela tr.linha-bloqueada td:not(:last-child) {
+    color: var(--cinza);
+}
+
+.tabela .pessoa {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 200px;
+}
+
+.tabela .pessoa .avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+}
+
+.tabela .pessoa strong {
+    display: block;
+    font-weight: 600;
+}
+
+.tabela .pessoa small,
+.tabela .sub {
+    display: block;
+    font-size: 12.5px;
+    color: var(--cinza);
+}
+
+.tabela .mono {
+    font-family: var(--fonte-mono);
+    font-size: 13px;
+}
+
+.tabela .selos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.tabela .acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.tabela .acoes .btn-icone {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--borda);
+}
+
+.tabela .acoes .btn-icone.perigo:hover {
+    color: var(--vermelho);
+    border-color: var(--vermelho-borda);
+    background: var(--vermelho-suave);
+}
+
+.tabela .acoes .btn-icone:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.tabela-vazia td {
+    padding: 36px 16px;
+    text-align: center;
+    color: var(--cinza);
+}
+
+/* ---------------- Formulários dos modais ---------------- */
+.form-admin {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+    margin-top: 18px;
+}
+
+/* Sem isto os inputs de texto ficam mais largos que a coluna e o modal rola de lado */
+.form-admin .campo {
+    min-width: 0;
+}
+
+.form-admin .campo input,
+.form-admin .campo select {
+    width: 100%;
+    min-width: 0;
+}
+
+/* Selos que aparecem embaixo do nome só no celular (a coluna "Perfil" some) */
+.so-celular {
+    display: none;
+}
+
+.campo select {
+    height: 46px;
+    padding: 0 12px;
+    border: 1px solid var(--borda);
+    border-radius: var(--raio-sm);
+    background: var(--branco);
+    font: inherit;
+    font-size: 14.5px;
+}
+
+.campo select:focus {
+    outline: none;
+    border-color: var(--vermelho);
+    box-shadow: 0 0 0 4px rgba(225, 29, 46, 0.12);
+}
+
+.campo .dica {
+    font-size: 12px;
+    color: var(--cinza);
+}
+
+.campo input.mono {
+    font-family: var(--fonte-mono);
+    text-transform: uppercase;
+}
+
+.aviso-perfil {
+    margin-top: 14px;
+}
+
+@media (max-width: 760px) {
+    .form-admin {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .so-celular {
+        display: flex;
+        margin-top: 6px;
+    }
+
+    .tabela .pessoa {
+        min-width: 0;
+    }
+
+    .tabela th,
+    .tabela td {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .tabela .acoes {
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .tabela-rolagem {
+        margin: 0 -18px -18px;
+    }
+
+    .painel.so-tabela .tabela-rolagem {
+        margin-top: -18px;
+    }
+
+    .view-cabecalho {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    /* Colunas menos importantes somem no celular */
+    .tabela .col-opcional {
+        display: none;
+    }
+}
