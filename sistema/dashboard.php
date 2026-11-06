@@ -12,18 +12,25 @@ require_once __DIR__ . '/config/conexao.php';
 
 /* Dados do usuário direto do banco (nome atualizado, perfil, chaveiro) */
 $idSessao = (int) $_SESSION['usuario_id'];
-$stmt = $conn->prepare('SELECT nome, email, perfil, rfid_uid, created_at FROM usuarios WHERE id = ?');
+$stmt = $conn->prepare('SELECT nome, email, perfil, bloqueado, rfid_uid, created_at FROM usuarios WHERE id = ?');
 $stmt->bind_param('i', $idSessao);
 $stmt->execute();
 $conta = $stmt->get_result()->fetch_assoc();
 
-if (!$conta) {
-    /* usuário apagado do banco: encerra a sessão */
-    $_SESSION = [];
-    session_destroy();
-    header('Location: login.php');
+if (!$conta || !empty($conta['bloqueado'])) {
+    /* usuário apagado ou bloqueado: encerra a sessão */
+    encerrarSessao();
+    header('Location: login.php' . ($conta ? '?bloqueado=1' : ''));
     exit;
 }
+
+/* Administrador usa o painel administrativo */
+if ($conta['perfil'] === 'admin') {
+    header('Location: admin/');
+    exit;
+}
+
+$csrf = tokenCsrf();
 
 $usuario = trim($conta['nome']) !== '' ? trim($conta['nome']) : 'Usuário';
 $primeiroNome = explode(' ', $usuario)[0];
@@ -39,6 +46,7 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#14161b">
+    <meta name="csrf-token" content="<?= htmlspecialchars($csrf) ?>">
     <title>SmartLocker - Área do Cliente</title>
 
     <link rel="icon" type="image/svg+xml"
@@ -723,6 +731,7 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
         if (corpo !== undefined) {
             opcoes.method = 'POST';
             opcoes.headers['Content-Type'] = 'application/json';
+            opcoes.headers['X-CSRF-Token'] = document.querySelector('meta[name="csrf-token"]').content;
             opcoes.body = JSON.stringify(corpo);
         }
 

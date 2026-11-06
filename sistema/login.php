@@ -59,6 +59,15 @@ iniciarSessao();
         <?php endif; ?>
 
 
+        <?php if(isset($_GET['bloqueado'])): ?>
+
+            <div class="erro">
+                Esta conta está bloqueada. Procure o administrador do SmartLocker.
+            </div>
+
+        <?php endif; ?>
+
+
         <?php if(isset($_GET['sucesso'])): ?>
 
             <div class="sucesso">

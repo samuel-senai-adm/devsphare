@@ -70,7 +70,7 @@ function validarAcesso(mysqli $conn, $numeroArmario, $metodo, $codigo)
             return $negar('codigo_vazio', 'Nenhum UID recebido.');
         }
 
-        $stmt = $conn->prepare('SELECT id FROM usuarios WHERE rfid_uid = ?');
+        $stmt = $conn->prepare('SELECT id, bloqueado FROM usuarios WHERE rfid_uid = ?');
         $stmt->bind_param('s', $uid);
         $stmt->execute();
         $dono = $stmt->get_result()->fetch_assoc();
@@ -78,6 +78,9 @@ function validarAcesso(mysqli $conn, $numeroArmario, $metodo, $codigo)
             return $negar('chaveiro_desconhecido', 'Chaveiro não cadastrado.', null, null, 'Chaveiro não cadastrado (UID ' . $uid . ')');
         }
         $usuarioId = (int) $dono['id'];
+        if (!empty($dono['bloqueado'])) {
+            return $negar('conta_bloqueada', 'Conta bloqueada. Procure o administrador.', $usuarioId);
+        }
 
         $stmt = $conn->prepare(SQL_RESERVA . " WHERE r.usuario_id = ? AND r.locker_id = ? AND r.status = 'ativa' LIMIT 1");
         $stmt->bind_param('ii', $usuarioId, $lockerId);
@@ -103,6 +106,11 @@ function validarAcesso(mysqli $conn, $numeroArmario, $metodo, $codigo)
             return $negar('qr_invalido', 'QR Code não reconhecido.');
         }
         $usuarioId = (int) $reserva['usuario_id'];
+
+        $dono = buscarUsuario($conn, $usuarioId);
+        if ($dono && !empty($dono['bloqueado'])) {
+            return $negar('conta_bloqueada', 'Conta bloqueada. Procure o administrador.', $usuarioId, (int) $reserva['id']);
+        }
 
         if ((int) $reserva['locker_id'] !== $lockerId) {
             return $negar('outro_armario', 'Este QR Code é do ' . nomeArmario($reserva['numero']) . '.', $usuarioId, (int) $reserva['id']);

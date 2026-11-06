@@ -41,3 +41,44 @@ function iniciarSessao()
 
     session_start();
 }
+
+/*
+ * Token CSRF da sessão. Vai numa <meta> das páginas e volta no cabeçalho
+ * X-CSRF-Token de toda requisição que altera dados; um site de fora não
+ * consegue ler esse valor, então não consegue forjar a requisição.
+ */
+function tokenCsrf()
+{
+    iniciarSessao();
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function csrfValido($token)
+{
+    iniciarSessao();
+    return is_string($token) && $token !== ''
+        && !empty($_SESSION['csrf_token'])
+        && hash_equals($_SESSION['csrf_token'], $token);
+}
+
+/* Encerra a sessão por completo (variáveis, arquivo no servidor e cookie). */
+function encerrarSessao()
+{
+    iniciarSessao();
+    $_SESSION = [];
+    if (ini_get('session.use_cookies')) {
+        $p = session_get_cookie_params();
+        setcookie(session_name(), '', [
+            'expires'  => time() - 42000,
+            'path'     => $p['path'],
+            'domain'   => $p['domain'],
+            'secure'   => $p['secure'],
+            'httponly' => $p['httponly'],
+            'samesite' => isset($p['samesite']) ? $p['samesite'] : 'Lax',
+        ]);
+    }
+    session_destroy();
+}
