@@ -8,6 +8,7 @@
  *  - uma reserva ativa por usuário e uma por armário
  *  - início no futuro, término depois do início, no mesmo dia
  *  - duração entre 15 minutos e 12 horas, até 30 dias à frente
+ *  - armário RFID só para quem tem chaveiro vinculado
  */
 require_once __DIR__ . '/_base.php';
 
@@ -67,7 +68,7 @@ try {
     $stmt->execute();
     $stmt->get_result();
 
-    $stmt = $conn->prepare('SELECT id, numero, status FROM lockers WHERE id = ? FOR UPDATE');
+    $stmt = $conn->prepare('SELECT id, numero, status, metodo_acesso FROM lockers WHERE id = ? FOR UPDATE');
     $stmt->bind_param('i', $lockerId);
     $stmt->execute();
     $locker = $stmt->get_result()->fetch_assoc();
@@ -79,6 +80,11 @@ try {
     if ($locker['status'] === 'manutencao') {
         $conn->rollback();
         falhar(nomeArmario($locker['numero']) . ' está em manutenção.', 409);
+    }
+    if (metodoArmario($locker['metodo_acesso']) === 'rfid' && empty($usuario['rfid_uid'])) {
+        $conn->rollback();
+        falhar(nomeArmario($locker['numero']) . ' abre só com chaveiro RFID, e sua conta não tem chaveiro vinculado. ' .
+            'Peça um chaveiro ao administrador ou escolha um armário com QR Code.', 409);
     }
 
     $stmt = $conn->prepare("SELECT id FROM reservas WHERE usuario_id = ? AND status = 'ativa' LIMIT 1");

@@ -25,12 +25,19 @@ class _TelaArmariosState extends State<TelaArmarios> {
     return !a.livre;
   }
 
+  /// Armário RFID só pode ser reservado por quem tem chaveiro vinculado.
+  bool _precisaChaveiro(AppEstado estado, Armario a) => a.usaRfid && !estado.temChaveiro;
+
   void _tocar(AppEstado estado, Armario a) {
     if (a.minha) {
-      widget.irPara(Aba.qrcode);
+      widget.irPara(a.usaRfid ? Aba.inicio : Aba.qrcode);
       return;
     }
     if (!a.livre) return;
+    if (_precisaChaveiro(estado, a)) {
+      mostrarMensagem(context, '${a.nome} abre só com chaveiro RFID. Peça um chaveiro ao administrador.', erro: true);
+      return;
+    }
     if (estado.reserva != null) {
       mostrarMensagem(context, 'Você já possui uma reserva ativa. Cancele ou aguarde ela terminar.', erro: true);
       return;
@@ -43,7 +50,7 @@ class _TelaArmariosState extends State<TelaArmarios> {
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => Escopo(
         estado: estado,
-        child: _FolhaReserva(armario: a, aoConcluir: () => widget.irPara(Aba.qrcode)),
+        child: _FolhaReserva(armario: a, aoConcluir: () => widget.irPara(a.usaRfid ? Aba.inicio : Aba.qrcode)),
       ),
     );
   }
@@ -119,11 +126,16 @@ class _TelaArmariosState extends State<TelaArmarios> {
                 delegate: SliverChildBuilderDelegate(
                   (context, i) {
                     final a = lista[i];
-                    final rotulo = a.minha ? 'Ver QR Code' : (a.livre ? 'Reservar' : 'Indisponível');
+                    final semChaveiro = a.livre && _precisaChaveiro(estado, a);
+                    final rotulo = a.minha
+                        ? (a.usaRfid ? 'Ver reserva' : 'Ver QR Code')
+                        : semChaveiro
+                            ? 'Precisa de chaveiro'
+                            : (a.livre ? 'Reservar' : 'Indisponível');
                     return PortaArmario(
                       armario: a,
                       rotuloBotao: rotulo,
-                      aoTocar: (a.livre || a.minha) ? () => _tocar(estado, a) : null,
+                      aoTocar: ((a.livre && !semChaveiro) || a.minha) ? () => _tocar(estado, a) : null,
                     );
                   },
                   childCount: lista.length,
@@ -337,7 +349,51 @@ class _FolhaReservaState extends State<_FolhaReserva> {
                       ],
                     ),
                   ),
-                  Selo.armario('livre'),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Selo.armario('livre'),
+                      const SizedBox(height: 6),
+                      Selo.metodo(a.metodoAcesso),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            // Como o armário abre: aparece antes de confirmar a reserva
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Cores.borda),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(a.usaRfid ? Icons.nfc : Icons.qr_code_2, size: 20, color: Cores.cinza),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        style: const TextStyle(fontSize: 13, color: Cores.texto2, height: 1.4),
+                        children: a.usaRfid
+                            ? const [
+                                TextSpan(
+                                    text: 'Abre com o seu chaveiro RFID. ',
+                                    style: TextStyle(fontWeight: FontWeight.w700, color: Cores.texto)),
+                                TextSpan(text: 'Na hora de usar, encoste o chaveiro no leitor do armário.'),
+                              ]
+                            : const [
+                                TextSpan(
+                                    text: 'Abre com QR Code. ',
+                                    style: TextStyle(fontWeight: FontWeight.w700, color: Cores.texto)),
+                                TextSpan(text: 'Depois de reservar, o código aparece em "Meu QR Code".'),
+                              ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

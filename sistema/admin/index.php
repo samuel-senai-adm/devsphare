@@ -296,13 +296,14 @@ $inicial = mb_strtoupper(mb_substr($nome, 0, 1, 'UTF-8'), 'UTF-8');
                             <tr>
                                 <th scope="col">Armário</th>
                                 <th scope="col">Situação</th>
+                                <th scope="col" class="col-opcional">Abertura</th>
                                 <th scope="col" class="col-opcional">Em uso por</th>
                                 <th scope="col" class="col-opcional">Reservas</th>
                                 <th scope="col"><span class="sr-only">Ações</span></th>
                             </tr>
                         </thead>
                         <tbody id="corpoArmarios">
-                            <tr class="tabela-vazia"><td colspan="5">Carregando…</td></tr>
+                            <tr class="tabela-vazia"><td colspan="6">Carregando…</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -392,6 +393,26 @@ $inicial = mb_strtoupper(mb_substr($nome, 0, 1, 'UTF-8'), 'UTF-8');
                 <label for="armarioLocal">Localização</label>
                 <input type="text" id="armarioLocal" maxlength="100" placeholder="Ex.: Bloco A, térreo">
             </div>
+            <fieldset class="campo campo-full opcoes-metodo">
+                <legend>Como o armário abre</legend>
+                <label class="opcao-metodo">
+                    <input type="radio" name="armarioMetodo" value="qrcode" checked>
+                    <span class="opcao-metodo-corpo">
+                        <i class="fas fa-qrcode" aria-hidden="true"></i>
+                        <strong>QR Code</strong>
+                        <small>O usuário mostra o QR da reserva no leitor.</small>
+                    </span>
+                </label>
+                <label class="opcao-metodo">
+                    <input type="radio" name="armarioMetodo" value="rfid">
+                    <span class="opcao-metodo-corpo">
+                        <i class="fas fa-id-card" aria-hidden="true"></i>
+                        <strong>Chaveiro RFID</strong>
+                        <small>Só quem tem chaveiro vinculado pode reservar.</small>
+                    </span>
+                </label>
+                <span class="dica" id="dicaMetodo">Não dá para trocar enquanto houver reserva ativa.</span>
+            </fieldset>
         </form>
 
         <div class="mensagem" id="mensagemArmario" role="alert"></div>
@@ -867,7 +888,7 @@ $inicial = mb_strtoupper(mb_substr($nome, 0, 1, 'UTF-8'), 'UTF-8');
             estado.armarios = d.armarios;
             desenharArmarios();
             return true;
-        }).catch(falhaAoCarregar('corpoArmarios', 5));
+        }).catch(falhaAoCarregar('corpoArmarios', 6));
     }
 
     function seloArmario(s) {
@@ -876,10 +897,16 @@ $inicial = mb_strtoupper(mb_substr($nome, 0, 1, 'UTF-8'), 'UTF-8');
         return '<span class="badge livre"><i class="fas fa-lock-open" aria-hidden="true"></i>Disponível</span>';
     }
 
+    function seloMetodo(m) {
+        return m === 'rfid'
+            ? '<span class="badge metodo"><i class="fas fa-id-card" aria-hidden="true"></i>Chaveiro RFID</span>'
+            : '<span class="badge metodo"><i class="fas fa-qrcode" aria-hidden="true"></i>QR Code</span>';
+    }
+
     function desenharArmarios() {
         var lista = estado.armarios;
         if (!lista.length) {
-            $('corpoArmarios').innerHTML = '<tr class="tabela-vazia"><td colspan="5">Nenhum armário cadastrado. Clique em “Novo armário”.</td></tr>';
+            $('corpoArmarios').innerHTML = '<tr class="tabela-vazia"><td colspan="6">Nenhum armário cadastrado. Clique em “Novo armário”.</td></tr>';
             return;
         }
 
@@ -891,7 +918,8 @@ $inicial = mb_strtoupper(mb_substr($nome, 0, 1, 'UTF-8'), 'UTF-8');
 
             return '<tr>' +
                 '<td><strong>' + esc(a.nome) + '</strong><span class="sub">' + esc(a.localizacao || 'Sem localização') + '</span></td>' +
-                '<td>' + seloArmario(a.status) + '</td>' +
+                '<td>' + seloArmario(a.status) + '<span class="so-celular">' + seloMetodo(a.metodo_acesso) + '</span></td>' +
+                '<td class="col-opcional">' + seloMetodo(a.metodo_acesso) + '</td>' +
                 '<td class="col-opcional">' + uso + '</td>' +
                 '<td class="col-opcional">' + a.total_reservas + '</td>' +
                 '<td><div class="acoes">' +
@@ -922,6 +950,15 @@ $inicial = mb_strtoupper(mb_substr($nome, 0, 1, 'UTF-8'), 'UTF-8');
         $('armarioNumero').value = a ? a.numero : (estado.armarios.reduce(function (m, x) { return Math.max(m, x.numero); }, 0) + 1);
         $('armarioLocal').value = a ? a.localizacao : '';
         $('armarioStatus').value = a && a.status === 'manutencao' ? 'manutencao' : 'livre';
+        var metodo = a ? a.metodo_acesso : 'qrcode';
+        var travado = !!(a && a.ocupante);
+        document.querySelectorAll('input[name="armarioMetodo"]').forEach(function (r) {
+            r.checked = r.value === metodo;
+            r.disabled = travado && r.value !== metodo;
+        });
+        $('dicaMetodo').textContent = travado
+            ? 'Em uso por ' + a.ocupante + ': o tipo só pode mudar quando a reserva terminar.'
+            : 'Não dá para trocar enquanto houver reserva ativa.';
         $('tituloModalArmario').textContent = a ? 'Editar ' + a.nome : 'Novo armário';
         mensagem('mensagemArmario', '');
         abrirModal('modalArmario', 'armarioNumero');
@@ -959,7 +996,8 @@ $inicial = mb_strtoupper(mb_substr($nome, 0, 1, 'UTF-8'), 'UTF-8');
             id: Number($('armarioId').value),
             numero: Number($('armarioNumero').value),
             localizacao: $('armarioLocal').value,
-            status: $('armarioStatus').value
+            status: $('armarioStatus').value,
+            metodo_acesso: document.querySelector('input[name="armarioMetodo"]:checked').value
         }).then(function (d) {
             fecharModal('modalArmario');
             toast(d.mensagem, 'sucesso');

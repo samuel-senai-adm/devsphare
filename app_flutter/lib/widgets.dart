@@ -109,8 +109,22 @@ class Selo extends StatelessWidget {
   final Color fundo;
   final Color cor;
   final IconData? icone;
+  final Color? borda;
 
-  const Selo({super.key, required this.texto, required this.fundo, required this.cor, this.icone});
+  const Selo({super.key, required this.texto, required this.fundo, required this.cor, this.icone, this.borda});
+
+  /// Como o armário abre. Selo com contorno para não confundir com a situação.
+  /// [curto] usa "RFID" no lugar de "Chaveiro RFID" (cards pequenos).
+  factory Selo.metodo(String metodo, {bool curto = false, bool claro = false}) {
+    final rfid = metodo == 'rfid';
+    return Selo(
+      texto: rfid ? (curto ? 'RFID' : 'Chaveiro RFID') : 'QR Code',
+      icone: rfid ? Icons.nfc : Icons.qr_code_2,
+      fundo: claro ? Colors.transparent : Colors.white,
+      cor: claro ? Colors.white : Cores.texto2,
+      borda: claro ? const Color(0x88FFFFFF) : Cores.borda,
+    );
+  }
 
   factory Selo.armario(String status) {
     switch (status) {
@@ -145,7 +159,11 @@ class Selo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: fundo, borderRadius: BorderRadius.circular(999)),
+      decoration: BoxDecoration(
+        color: fundo,
+        borderRadius: BorderRadius.circular(999),
+        border: borda == null ? null : Border.all(color: borda!),
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -216,7 +234,8 @@ class PortaArmario extends StatelessWidget {
 
     return Semantics(
       button: aoTocar != null,
-      label: '${armario.nome}, ${armario.localizacao}, ${Selo.armario(armario.status).texto}',
+      label: '${armario.nome}, ${armario.localizacao}, ${Selo.armario(armario.status).texto}, '
+          'abre com ${armario.usaRfid ? 'chaveiro RFID' : 'QR Code'}',
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -288,16 +307,23 @@ class PortaArmario extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        minha
-                            ? Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                    color: Colors.white, borderRadius: BorderRadius.circular(999)),
-                                child: const Text('Minha reserva',
-                                    style: TextStyle(
-                                        fontSize: 12, fontWeight: FontWeight.w700, color: Cores.vermelhoEscuro)),
-                              )
-                            : Selo.armario(armario.status),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            minha
+                                ? Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                        color: Colors.white, borderRadius: BorderRadius.circular(999)),
+                                    child: const Text('Minha reserva',
+                                        style: TextStyle(
+                                            fontSize: 12, fontWeight: FontWeight.w700, color: Cores.vermelhoEscuro)),
+                                  )
+                                : Selo.armario(armario.status),
+                            Selo.metodo(armario.metodoAcesso, curto: true, claro: minha),
+                          ],
+                        ),
                       ],
                     ),
                     // maçaneta
@@ -328,10 +354,10 @@ class PortaArmario extends StatelessWidget {
                       onPressed: aoTocar,
                       style: FilledButton.styleFrom(
                           backgroundColor: Cores.grafite, minimumSize: const Size(0, 42)),
-                      icon: const Icon(Icons.qr_code_2, size: 18),
+                      icon: Icon(armario.usaRfid ? Icons.nfc : Icons.qr_code_2, size: 18),
                       label: Text(rotuloBotao),
                     )
-                  : livre
+                  : livre && aoTocar != null
                       ? FilledButton.icon(
                           onPressed: aoTocar,
                           style: FilledButton.styleFrom(minimumSize: const Size(0, 42)),
@@ -341,7 +367,8 @@ class PortaArmario extends StatelessWidget {
                       : OutlinedButton.icon(
                           onPressed: null,
                           style: OutlinedButton.styleFrom(minimumSize: const Size(0, 42)),
-                          icon: const Icon(Icons.block, size: 18),
+                          // livre mas sem toque = armário RFID e a conta não tem chaveiro
+                          icon: Icon(livre ? Icons.nfc : Icons.block, size: 18),
                           label: Text(rotuloBotao),
                         ),
             ),

@@ -2,13 +2,14 @@
 /*
  * GET api/admin/armarios.php — todos os armários com quem está usando agora.
  * status: livre | ocupado | manutencao
+ * metodo_acesso: qrcode | rfid
  */
 require_once __DIR__ . '/_admin.php';
 
 exigirMetodo('GET');
 
 $resultado = $conn->query(
-    "SELECT l.id, l.numero, l.localizacao, l.status,
+    "SELECT l.id, l.numero, l.localizacao, l.status, l.metodo_acesso,
             r.id AS reserva_id, r.data_inicio, r.data_fim, u.nome AS ocupante,
             (SELECT COUNT(*) FROM reservas x WHERE x.locker_id = l.id) AS total_reservas,
             (SELECT COUNT(*) FROM logs_acesso a WHERE a.locker_id = l.id) AS total_acessos
@@ -29,6 +30,7 @@ while ($l = $resultado->fetch_assoc()) {
         'nome'           => nomeArmario($l['numero']),
         'localizacao'    => $l['localizacao'] ?: '',
         'status'         => $l['status'],
+        'metodo_acesso'  => metodoArmario($l['metodo_acesso']),
         'ocupante'       => $l['ocupante'],
         'reserva'        => $l['reserva_id'] ? [
             'id'     => (int) $l['reserva_id'],

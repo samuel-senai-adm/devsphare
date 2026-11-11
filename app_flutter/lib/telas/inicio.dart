@@ -260,6 +260,8 @@ class _ReservaAtivaState extends State<_ReservaAtiva> {
                       style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
                   Text('${r.localizacao} · ${formatarData(r.data)}, ${r.inicio} às ${r.fim}',
                       style: const TextStyle(color: Cores.cinza2, fontSize: 13)),
+                  const SizedBox(height: 6),
+                  Selo.metodo(r.metodoAcesso, claro: true),
                 ],
               ),
             ),
@@ -285,15 +287,36 @@ class _ReservaAtivaState extends State<_ReservaAtiva> {
           ),
         ),
         const SizedBox(height: 18),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton.icon(
-            onPressed: () => widget.irPara(Aba.qrcode),
-            style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Cores.grafite),
-            icon: const Icon(Icons.qr_code_2),
-            label: const Text('Mostrar QR Code'),
+        if (r.usaRfid)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0x14FFFFFF),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0x29FFFFFF)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.nfc, color: Colors.white, size: 20),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text('Este armário abre com o seu chaveiro RFID. Encoste no leitor.',
+                      style: TextStyle(color: Colors.white, fontSize: 13, height: 1.4)),
+                ),
+              ],
+            ),
+          )
+        else
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: () => widget.irPara(Aba.qrcode),
+              style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Cores.grafite),
+              icon: const Icon(Icons.qr_code_2),
+              label: const Text('Mostrar QR Code'),
+            ),
           ),
-        ),
       ],
     );
   }

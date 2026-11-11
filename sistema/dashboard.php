@@ -352,6 +352,7 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
                         <div>
                             <h2 id="reservaTitulo">Armário</h2>
                             <p><i class="fas fa-location-dot" aria-hidden="true"></i> <span id="reservaLocal">Bloco</span></p>
+                            <span id="reservaMetodo"></span>
                         </div>
                         <span class="badge ativa" id="reservaBadge">Ativa</span>
                     </div>
@@ -388,9 +389,13 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
                 </div>
 
                 <div class="ticket-lateral">
-                    <button class="btn btn-escuro btn-bloco" type="button" data-ir="qrcode">
+                    <button class="btn btn-escuro btn-bloco" type="button" data-ir="qrcode" id="btnVerQr">
                         <i class="fas fa-qrcode" aria-hidden="true"></i> Ver QR Code
                     </button>
+                    <div class="aviso aviso-neutro" id="avisoChaveiro" hidden>
+                        <i class="fas fa-id-card" aria-hidden="true"></i>
+                        <span>Este armário abre com o seu <strong>chaveiro RFID</strong>. Encoste no leitor.</span>
+                    </div>
                     <button class="btn btn-perigo btn-bloco" type="button" id="btnCancelar">
                         <i class="fas fa-calendar-xmark" aria-hidden="true"></i> Cancelar reserva
                     </button>
@@ -454,6 +459,16 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
                     </button>
                 </div>
 
+                <div class="vazio" id="qrcodeRfid" hidden>
+                    <div class="vazio-icone"><i class="fas fa-id-card" aria-hidden="true"></i></div>
+                    <h2>Sua reserva usa chaveiro RFID</h2>
+                    <p><span id="qrRfidArmario">Este armário</span> não usa QR Code: encoste o seu chaveiro no leitor
+                        para abrir. A porta libera a partir de 10 minutos antes do início da reserva.</p>
+                    <button class="btn btn-secundario" type="button" data-ir="reserva">
+                        <i class="fas fa-eye" aria-hidden="true"></i> Ver reserva
+                    </button>
+                </div>
+
                 <div class="qr-ativo" id="qrcodeAtivo" hidden>
                     <div class="qr-scanner">
                         <span class="canto c1"></span><span class="canto c2"></span>
@@ -467,7 +482,7 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
                         <div class="aviso aviso-neutro">
                             <i class="fas fa-microchip" aria-hidden="true"></i>
                             <span>Aproxime este código do leitor do armário. A porta libera a partir de
-                                10 minutos antes do início da reserva. Se tiver chaveiro, pode usá-lo no lugar do QR.</span>
+                                10 minutos antes do início da reserva.</span>
                         </div>
                     </div>
                 </div>
@@ -540,7 +555,15 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
                 <strong id="modalArmario">Armário</strong>
                 <small><i class="fas fa-location-dot" aria-hidden="true"></i> <span id="modalLocal">Bloco</span></small>
             </div>
-            <span class="badge livre">Disponível</span>
+            <div class="modal-selos">
+                <span class="badge livre">Disponível</span>
+                <span id="modalMetodo"></span>
+            </div>
+        </div>
+
+        <div class="aviso aviso-neutro aviso-metodo">
+            <i class="fas fa-qrcode" id="modalMetodoIcone" aria-hidden="true"></i>
+            <span id="modalMetodoTexto"></span>
         </div>
 
         <div class="form-reserva">
@@ -620,6 +643,7 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
         reserva: null,
         historico: [],   /* do mais antigo para o mais recente */
         acessos: [],
+        temChaveiro: <?= $temChaveiro ? 'true' : 'false' ?>,
         carregado: false,
         erro: false
     };
@@ -634,6 +658,23 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
     };
 
     var ROTULOS = { livre: 'Disponível', ocupado: 'Ocupado', minha: 'Minha reserva' };
+
+    /* Como cada armário abre (definido pelo administrador) */
+    var METODOS = {
+        qrcode: { nome: 'QR Code', icone: 'fa-qrcode' },
+        rfid:   { nome: 'Chaveiro RFID', icone: 'fa-id-card' }
+    };
+
+    function seloMetodo(metodo, id) {
+        var m = METODOS[metodo] || METODOS.qrcode;
+        return '<span class="badge metodo"' + (id ? ' id="' + id + '"' : '') + '>' +
+            '<i class="fas ' + m.icone + '" aria-hidden="true"></i>' + m.nome + '</span>';
+    }
+
+    /* armário RFID só pode ser reservado por quem tem chaveiro vinculado */
+    function precisaChaveiro(armario) {
+        return armario.metodo === 'rfid' && !dados.temChaveiro;
+    }
 
     var estado = {
         armarioSelecionado: null,
@@ -758,7 +799,10 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
     }
 
     function converterArmario(a) {
-        return { id: a.numero, dbId: a.id, nome: a.nome, local: a.localizacao, situacao: a.status };
+        return {
+            id: a.numero, dbId: a.id, nome: a.nome, local: a.localizacao, situacao: a.status,
+            metodo: a.metodo_acesso === 'rfid' ? 'rfid' : 'qrcode'
+        };
     }
 
     function converterReserva(r) {
@@ -773,6 +817,7 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
             fim: r.fim,
             status: r.status,
             criadaEm: r.criada_em,
+            metodo: r.metodo_acesso === 'rfid' ? 'rfid' : 'qrcode',
             qr: r.qr || ''
         };
     }
@@ -788,6 +833,7 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
             api('historico.php')
         ]).then(function (res) {
             ARMARIOS = res[0].armarios.map(converterArmario);
+            if (typeof res[0].tem_chaveiro === 'boolean') { dados.temChaveiro = res[0].tem_chaveiro; }
             dados.reserva = converterReserva(res[1].reserva);
             dados.historico = res[2].reservas.map(converterReserva).reverse();
             dados.acessos = res[2].acessos || [];
@@ -1040,12 +1086,21 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
 
         var armario = ARMARIOS.filter(function (a) { return a.id === id; })[0];
         if (!armario || statusDoArmario(armario) !== 'livre') { return; }
+        if (precisaChaveiro(armario)) {
+            toast(armario.nome + ' abre só com chaveiro RFID. Peça um chaveiro ao administrador.', 'erro');
+            return;
+        }
 
         estado.armarioSelecionado = armario;
 
         $('modalArmario').textContent = armario.nome;
         $('modalLocal').textContent = armario.local;
         $('modalNumero').textContent = armario.id;
+        trocarHTML($('modalMetodo'), seloMetodo(armario.metodo));
+        $('modalMetodoTexto').innerHTML = armario.metodo === 'rfid'
+            ? '<strong>Abre com o seu chaveiro RFID.</strong> Na hora de usar, encoste o chaveiro no leitor do armário.'
+            : '<strong>Abre com QR Code.</strong> Depois de reservar, o código aparece em “Meu QR Code”; mostre-o no leitor do armário.';
+        $('modalMetodoIcone').className = 'fas ' + METODOS[armario.metodo].icone;
 
         var data = $('dataReserva');
         data.min = dataAtualISO();
@@ -1250,7 +1305,11 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
         var status = statusDoArmario(a, reserva);
         var botao;
 
-        if (status === 'livre') {
+        if (status === 'livre' && !reserva && precisaChaveiro(a)) {
+            botao = '<button class="btn btn-secundario btn-bloco" type="button" disabled' +
+                    ' title="Este armário abre só com chaveiro RFID">' +
+                    '<i class="fas fa-id-card" aria-hidden="true"></i> Precisa de chaveiro</button>';
+        } else if (status === 'livre') {
             botao = reserva
                 ? '<button class="btn btn-secundario btn-bloco" type="button" disabled>' +
                   '<i class="fas fa-calendar-plus" aria-hidden="true"></i> Reservar</button>'
@@ -1277,7 +1336,10 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
                     '<h3>' + esc(a.nome) + '</h3>' +
                     '<span><i class="fas fa-location-dot" aria-hidden="true"></i> ' + esc(a.local) + '</span>' +
                 '</div>' +
-                '<span class="badge ' + status + '">' + ROTULOS[status] + '</span>' +
+                '<div class="armario-selos">' +
+                    '<span class="badge ' + status + '">' + ROTULOS[status] + '</span>' +
+                    seloMetodo(a.metodo) +
+                '</div>' +
             '</div>' +
             botao +
         '</article>';
@@ -1318,7 +1380,7 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
             var status = statusDoArmario(a, reserva);
             var grupo = status === 'livre' ? 'livre' : 'ocupado';
             var casaBusca = !termo ||
-                (a.nome + ' ' + a.local + ' ' + a.id).toLowerCase().indexOf(termo) !== -1;
+                (a.nome + ' ' + a.local + ' ' + a.id + ' ' + METODOS[a.metodo].nome + ' ' + a.metodo).toLowerCase().indexOf(termo) !== -1;
 
             if (casaBusca) { contas.todos++; contas[grupo]++; }
             return casaBusca && (estado.filtroArmario === 'todos' || estado.filtroArmario === grupo);
@@ -1435,7 +1497,7 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
         $('reservaAtiva').hidden = !reserva;
 
         $('contadorReserva').textContent = reserva ? 1 : 0;
-        $('contadorQr').textContent = reserva ? 1 : 0;
+        $('contadorQr').textContent = reserva && reserva.metodo === 'qrcode' ? 1 : 0;
         $('badgeReserva').classList.toggle('visivel', !!reserva);
 
         if (!reserva) { return; }
@@ -1443,6 +1505,9 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
         $('reservaNumero').textContent = numeroDe(reserva.armario);
         $('reservaTitulo').textContent = reserva.armario;
         $('reservaLocal').textContent = reserva.localizacao || '';
+        trocarHTML($('reservaMetodo'), seloMetodo(reserva.metodo));
+        $('btnVerQr').hidden = reserva.metodo !== 'qrcode';
+        $('avisoChaveiro').hidden = reserva.metodo !== 'rfid';
         $('reservaData').textContent = formatarData(reserva.data);
         $('reservaHorario').textContent = reserva.inicio + ' às ' + reserva.fim;
         $('reservaDuracao').textContent = textoDuracao(reserva.inicio, reserva.fim);
@@ -1517,13 +1582,19 @@ $clienteDesde = $conta['created_at'] ? date('d/m/Y', strtotime($conta['created_a
 
     function renderQRCode() {
         var reserva = obterReserva();
+        var usaChaveiro = !!reserva && reserva.metodo === 'rfid';
 
         $('qrcodeSemReserva').hidden = !!reserva;
-        $('qrcodeAtivo').hidden = !reserva;
+        $('qrcodeRfid').hidden = !usaChaveiro;
+        $('qrcodeAtivo').hidden = !reserva || usaChaveiro;
 
         var moldura = $('qrMoldura');
 
-        if (!reserva) {
+        if (usaChaveiro) {
+            $('qrRfidArmario').textContent = reserva.armario;
+        }
+
+        if (!reserva || usaChaveiro) {
             moldura.innerHTML = '';
             moldura.removeAttribute('data-conteudo');
             return;

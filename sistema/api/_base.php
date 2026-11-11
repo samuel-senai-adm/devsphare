@@ -246,7 +246,7 @@ function atualizarSituacao(mysqli $conn)
 
 define('SQL_RESERVA',
     'SELECT r.id, r.usuario_id, r.locker_id, r.data_inicio, r.data_fim, r.status, r.qr_token,
-            r.criada_em, r.cancelada_em, l.numero, l.localizacao
+            r.criada_em, r.cancelada_em, l.numero, l.localizacao, l.metodo_acesso
        FROM reservas r
        JOIN lockers l ON l.id = r.locker_id'
 );
@@ -254,6 +254,17 @@ define('SQL_RESERVA',
 function nomeArmario($numero)
 {
     return 'Armário ' . str_pad((string) $numero, 2, '0', STR_PAD_LEFT);
+}
+
+/* Como o armário abre: 'qrcode' ou 'rfid' (coluna lockers.metodo_acesso) */
+function metodoArmario($metodo)
+{
+    return $metodo === 'rfid' ? 'rfid' : 'qrcode';
+}
+
+function nomeMetodo($metodo)
+{
+    return metodoArmario($metodo) === 'rfid' ? 'chaveiro RFID' : 'QR Code';
 }
 
 function conteudoQr($token)
@@ -274,6 +285,7 @@ function formatarReserva(array $r, $incluirQr = false)
         'numero'       => str_pad((string) $r['numero'], 2, '0', STR_PAD_LEFT),
         'armario'      => nomeArmario($r['numero']),
         'localizacao'  => $r['localizacao'] ?: '',
+        'metodo_acesso'=> metodoArmario(isset($r['metodo_acesso']) ? $r['metodo_acesso'] : ''),
         'data'         => date('Y-m-d', $inicio),
         'inicio'       => date('H:i', $inicio),
         'fim'          => date('H:i', $fim),
@@ -285,7 +297,8 @@ function formatarReserva(array $r, $incluirQr = false)
         'criada_em'    => $r['criada_em'] ? date('c', strtotime($r['criada_em'])) : null,
     ];
 
-    if ($incluirQr && $r['status'] === 'ativa' && $r['qr_token']) {
+    /* QR Code só existe para armário que abre por QR; armário RFID abre com o chaveiro */
+    if ($incluirQr && $r['status'] === 'ativa' && $r['qr_token'] && $dados['metodo_acesso'] === 'qrcode') {
         $dados['qr'] = conteudoQr($r['qr_token']);
     }
     return $dados;

@@ -2533,3 +2533,68 @@ h1, h2, h3 {
 
 .atividade .acesso-liberado .atividade-icone { background: var(--verde-suave); color: var(--verde); }
 .atividade .acesso-negado .atividade-icone   { background: var(--ambar-suave); color: var(--ambar); }
+
+/* =========================================================
+   TIPO DE ABERTURA DO ARMÁRIO (QR Code / chaveiro RFID)
+   Selo com contorno para não confundir com a situação.
+   ========================================================= */
+
+.badge.metodo {
+    padding: 3px 9px;
+    background: var(--branco);
+    border: 1px solid var(--borda);
+    color: var(--texto-2);
+}
+
+.armario-selos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.armario-porta .armario-selos .badge {
+    margin-top: 0;
+}
+
+.armario[data-status="minha"] .badge.metodo {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.5);
+    color: #fff;
+}
+
+.armario[data-status="ocupado"] .badge.metodo {
+    background: transparent;
+    color: var(--cinza);
+}
+
+.modal-selos {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.aviso-metodo {
+    margin: -8px 0 4px;
+}
+
+.aviso-metodo strong {
+    color: var(--texto);
+}
+
+.ticket-cabecalho .badge.metodo {
+    margin-left: 0;
+    margin-top: 8px;
+}
+
+.ticket-lateral .aviso-neutro {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.ticket-lateral .aviso-neutro i,
+.ticket-lateral .aviso-neutro strong {
+    color: #fff;
+}
