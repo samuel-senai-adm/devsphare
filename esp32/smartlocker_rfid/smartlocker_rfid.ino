@@ -28,17 +28,17 @@
 // ===============================
 
 // Wi-Fi (o ESP32 só conecta em rede 2.4 GHz)
-#define WIFI_NOME   "nome-da-rede"
-#define WIFI_SENHA  "senha-da-rede"
+#define WIFI_NOME   "Codedevs"
+#define WIFI_SENHA  "Senai2026"
 
 // Endereço da API
 //  - Site no ar:  "https://devsphare.com.br/sistema/api/validar_acesso.php"
 //  - XAMPP local: "http://192.168.0.10/devsphare/sistema/api/validar_acesso.php"
 //    (troque pelo IP do computador; "localhost" NÃO funciona no ESP32)
-#define API_URL     "https://devsphare.com.br/sistema/api/validar_acesso.php"
+#define API_URL     "http://192.168.137.219/devsphare/sistema/api/validar_acesso.php"
 
 // Mesma frase da DEVICE_KEY do sistema/config/config.local.php
-#define DEVICE_KEY  "troque-esta-chave-do-esp32"
+#define DEVICE_KEY  "smartlocker-senai-2026"
 
 // Número do armário onde este leitor está instalado (tabela lockers, coluna numero)
 #define NUMERO_ARMARIO  1
