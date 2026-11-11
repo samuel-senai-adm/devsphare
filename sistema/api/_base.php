@@ -33,7 +33,7 @@ set_exception_handler(function ($e) {
     if ($e instanceof mysqli_sql_exception && in_array($e->getCode(), [1054, 1146], true)) {
         $falta = preg_match("/'([^']+)'/", $e->getMessage(), $m) ? $m[1] : '';
         $mensagem = 'O banco de dados está desatualizado' . ($falta !== '' ? " (falta: $falta)" : '') .
-            '. Rode o arquivo sistema/sql/migracao_2026_11 no phpMyAdmin.';
+            '. Rode as migrações da pasta sistema/sql no banco (veja o LEIA-ME).';
     }
 
     echo json_encode(['ok' => false, 'erro' => $mensagem], JSON_UNESCAPED_UNICODE);
@@ -127,7 +127,7 @@ function tokenDaRequisicao()
 function buscarUsuario(mysqli $conn, $id)
 {
     $stmt = $conn->prepare(
-        'SELECT id, nome, email, telefone, cpf, perfil, rfid_uid, created_at FROM usuarios WHERE id = ?'
+        'SELECT id, nome, email, telefone, cpf, perfil, bloqueado, rfid_uid, created_at FROM usuarios WHERE id = ?'
     );
     $stmt->bind_param('i', $id);
     $stmt->execute();
@@ -135,9 +135,22 @@ function buscarUsuario(mysqli $conn, $id)
     return $usuario ?: null;
 }
 
+function ehAdmin(array $usuario)
+{
+    return isset($usuario['perfil']) && $usuario['perfil'] === 'admin';
+}
+
+/* 'token' (app), 'sessao' (site) ou null — definido por usuarioLogado(). */
+$GLOBALS['ORIGEM_LOGIN'] = null;
+
+/*
+ * Usuário dono da requisição, sempre lido do banco (perfil e bloqueio atualizados).
+ * Conta bloqueada é tratada como deslogada: o app e o site voltam para o login.
+ */
 function usuarioLogado(mysqli $conn)
 {
     $token = tokenDaRequisicao();
+    $usuario = null;
 
     if ($token !== '') {
         $hash = hash('sha256', $token);
@@ -146,21 +159,48 @@ function usuarioLogado(mysqli $conn)
         $stmt->bind_param('ss', $hash, $agora);
         $stmt->execute();
         $linha = $stmt->get_result()->fetch_assoc();
-        return $linha ? buscarUsuario($conn, (int) $linha['usuario_id']) : null;
+        $usuario = $linha ? buscarUsuario($conn, (int) $linha['usuario_id']) : null;
+        $GLOBALS['ORIGEM_LOGIN'] = 'token';
+    } else {
+        iniciarSessao();
+        if (!empty($_SESSION['usuario_id'])) {
+            $usuario = buscarUsuario($conn, (int) $_SESSION['usuario_id']);
+        }
+        $GLOBALS['ORIGEM_LOGIN'] = 'sessao';
     }
 
-    iniciarSessao();
-    if (!empty($_SESSION['usuario_id'])) {
-        return buscarUsuario($conn, (int) $_SESSION['usuario_id']);
+    if ($usuario && !empty($usuario['bloqueado'])) {
+        return null;
     }
-    return null;
+    return $usuario;
 }
 
+/*
+ * Login obrigatório. Pelo site (cookie de sessão), toda requisição que altera
+ * dados precisa do cabeçalho X-CSRF-Token. O app usa token e não precisa.
+ */
 function exigirLogin(mysqli $conn)
 {
     $usuario = usuarioLogado($conn);
     if (!$usuario) {
         falhar('Sua sessão expirou. Entre novamente.', 401);
+    }
+
+    if ($GLOBALS['ORIGEM_LOGIN'] === 'sessao' && $_SERVER['REQUEST_METHOD'] !== 'GET') {
+        $csrf = isset($_SERVER['HTTP_X_CSRF_TOKEN']) ? $_SERVER['HTTP_X_CSRF_TOKEN'] : '';
+        if (!csrfValido($csrf)) {
+            falhar('Sessão desatualizada. Recarregue a página e tente de novo.', 403);
+        }
+    }
+    return $usuario;
+}
+
+/* Só administradores, e só pelo site (o app não tem área de admin). */
+function exigirAdmin(mysqli $conn)
+{
+    $usuario = exigirLogin($conn);
+    if ($GLOBALS['ORIGEM_LOGIN'] !== 'sessao' || !ehAdmin($usuario)) {
+        falhar('Acesso restrito a administradores.', 403);
     }
     return $usuario;
 }

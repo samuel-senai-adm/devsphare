@@ -24,6 +24,10 @@ if (!$usuario) {
     falhar('E-mail ou senha incorretos.', 401);
 }
 
+if (!empty($usuario['bloqueado'])) {
+    falhar('Esta conta está bloqueada. Procure o administrador do SmartLocker.', 403);
+}
+
 $token = bin2hex(random_bytes(32));
 $hash = hash('sha256', $token);
 $dispositivo = mb_substr(campo('dispositivo', 'Aplicativo'), 0, 100);

@@ -41,9 +41,13 @@ class Usuario
 
         $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
 
+        /*
+         * Todo cadastro (site ou app) nasce como 'usuario'. O perfil nunca vem
+         * do formulário; administrador só é criado direto no banco.
+         */
         $sql = "INSERT INTO usuarios
-                (nome, email, senha, cpf)
-                VALUES (?, ?, ?, ?)";
+                (nome, email, senha, cpf, perfil)
+                VALUES (?, ?, ?, ?, 'usuario')";
 
         $stmt = $this->conn->prepare($sql);
 
