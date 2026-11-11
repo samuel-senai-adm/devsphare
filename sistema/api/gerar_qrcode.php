@@ -18,4 +18,7 @@ if (!$reserva) {
 }
 
 $dados = formatarReserva($reserva, true);
+if ($dados['metodo_acesso'] !== 'qrcode' || empty($dados['qr'])) {
+    falhar($dados['armario'] . ' abre com o chaveiro RFID, não com QR Code.', 409, ['reserva' => $dados]);
+}
 responder(['qr' => $dados['qr'], 'reserva' => $dados]);

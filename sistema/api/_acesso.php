@@ -4,6 +4,7 @@
  * e pelo simulador do navegador (sistema/validar_qr.php).
  *
  * Libera quando:
+ *  - o método usado (rfid / qrcode) é o do armário (lockers.metodo_acesso)
  *  - a credencial (UID do chaveiro RFID ou QR Code) pertence a uma reserva ATIVA
  *  - a reserva é DESTE armário
  *  - o horário atual está entre (início - 10 min) e o término
@@ -33,7 +34,9 @@ function registrarAcesso(mysqli $conn, $usuarioId, $lockerId, $reservaId, $tipo,
 
 function validarAcesso(mysqli $conn, $numeroArmario, $metodo, $codigo)
 {
-    atualizarSituacao($conn);
+    /* Não chama atualizarSituacao() aqui: são 2 consultas a mais em toda leitura
+       e deixavam o leitor lento. O fim da reserva é conferido pela data_fim abaixo. */
+    $agora = agora();
 
     $metodo = strtolower(trim($metodo));
     if ($metodo !== 'rfid' && $metodo !== 'qrcode') {
@@ -41,7 +44,7 @@ function validarAcesso(mysqli $conn, $numeroArmario, $metodo, $codigo)
     }
 
     $numero = (int) $numeroArmario;
-    $stmt = $conn->prepare('SELECT id, numero, status FROM lockers WHERE numero = ?');
+    $stmt = $conn->prepare('SELECT id, numero, status, metodo_acesso FROM lockers WHERE numero = ?');
     $stmt->bind_param('i', $numero);
     $stmt->execute();
     $locker = $stmt->get_result()->fetch_assoc();
@@ -61,6 +64,12 @@ function validarAcesso(mysqli $conn, $numeroArmario, $metodo, $codigo)
         return $negar('manutencao', $nome . ' está em manutenção.');
     }
 
+    // cada armário abre por um método só (definido pelo administrador)
+    $metodoDoArmario = metodoArmario($locker['metodo_acesso']);
+    if ($metodo !== $metodoDoArmario) {
+        return $negar('metodo_errado', $nome . ' abre só com ' . nomeMetodo($metodoDoArmario) . '.');
+    }
+
     $reserva = null;
     $usuarioId = null;
 
@@ -70,7 +79,7 @@ function validarAcesso(mysqli $conn, $numeroArmario, $metodo, $codigo)
             return $negar('codigo_vazio', 'Nenhum UID recebido.');
         }
 
-        $stmt = $conn->prepare('SELECT id, bloqueado FROM usuarios WHERE rfid_uid = ?');
+        $stmt = $conn->prepare('SELECT id, nome, bloqueado FROM usuarios WHERE rfid_uid = ?');
         $stmt->bind_param('s', $uid);
         $stmt->execute();
         $dono = $stmt->get_result()->fetch_assoc();
@@ -82,8 +91,8 @@ function validarAcesso(mysqli $conn, $numeroArmario, $metodo, $codigo)
             return $negar('conta_bloqueada', 'Conta bloqueada. Procure o administrador.', $usuarioId);
         }
 
-        $stmt = $conn->prepare(SQL_RESERVA . " WHERE r.usuario_id = ? AND r.locker_id = ? AND r.status = 'ativa' LIMIT 1");
-        $stmt->bind_param('ii', $usuarioId, $lockerId);
+        $stmt = $conn->prepare(SQL_RESERVA . " WHERE r.usuario_id = ? AND r.locker_id = ? AND r.status = 'ativa' AND r.data_fim > ? LIMIT 1");
+        $stmt->bind_param('iis', $usuarioId, $lockerId, $agora);
         $stmt->execute();
         $reserva = $stmt->get_result()->fetch_assoc();
         if (!$reserva) {
@@ -115,7 +124,7 @@ function validarAcesso(mysqli $conn, $numeroArmario, $metodo, $codigo)
         if ((int) $reserva['locker_id'] !== $lockerId) {
             return $negar('outro_armario', 'Este QR Code é do ' . nomeArmario($reserva['numero']) . '.', $usuarioId, (int) $reserva['id']);
         }
-        if ($reserva['status'] !== 'ativa') {
+        if ($reserva['status'] !== 'ativa' || strtotime($reserva['data_fim']) <= time()) {
             $texto = $reserva['status'] === 'cancelada' ? 'Esta reserva foi cancelada.' : 'Esta reserva já terminou.';
             return $negar('reserva_encerrada', $texto, $usuarioId, (int) $reserva['id']);
         }
@@ -139,8 +148,7 @@ function validarAcesso(mysqli $conn, $numeroArmario, $metodo, $codigo)
 
     registrarAcesso($conn, $usuarioId, $lockerId, $reservaId, $tipo, $metodo, 'liberado', null);
 
-    $u = buscarUsuario($conn, $usuarioId);
-    $primeiroNome = $u ? explode(' ', trim($u['nome']))[0] : '';
+    $primeiroNome = !empty($dono['nome']) ? explode(' ', trim($dono['nome']))[0] : '';
 
     return [
         'liberado'   => true,

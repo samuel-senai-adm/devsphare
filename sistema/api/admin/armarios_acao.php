@@ -2,7 +2,8 @@
 /*
  * POST api/admin/armarios_acao.php
  *
- *   { "acao": "salvar",  "id": 0, "numero": 5, "localizacao": "Bloco B", "status": "livre" }   (id 0 = novo)
+ *   { "acao": "salvar",  "id": 0, "numero": 5, "localizacao": "Bloco B", "status": "livre",
+ *     "metodo_acesso": "qrcode" | "rfid" }   (id 0 = novo)
  *   { "acao": "status",  "id": 5, "status": "manutencao" | "livre" }
  *   { "acao": "excluir", "id": 5 }
  *
@@ -18,7 +19,7 @@ $id = inteiro('id');
 
 function buscarArmario(mysqli $conn, $id)
 {
-    $stmt = $conn->prepare('SELECT id, numero, localizacao, status FROM lockers WHERE id = ?');
+    $stmt = $conn->prepare('SELECT id, numero, localizacao, status, metodo_acesso FROM lockers WHERE id = ?');
     $stmt->bind_param('i', $id);
     $stmt->execute();
     $linha = $stmt->get_result()->fetch_assoc();
@@ -62,6 +63,16 @@ switch ($acao) {
         }
         validarStatus($status);
 
+        $metodo = campo('metodo_acesso', $armario ? $armario['metodo_acesso'] : '');
+        if ($metodo !== 'qrcode' && $metodo !== 'rfid') {
+            falhar('Escolha como o armário abre: QR Code ou chaveiro RFID.');
+        }
+
+        /* trocar o tipo com alguém usando deixaria a pessoa sem conseguir abrir */
+        if ($armario && $metodo !== metodoArmario($armario['metodo_acesso']) && temReservaAtiva($conn, $id)) {
+            falhar(nomeArmario($armario['numero']) . ' tem uma reserva ativa. Aguarde terminar ou cancele a reserva para trocar o tipo de abertura.', 409);
+        }
+
         $stmt = $conn->prepare('SELECT id FROM lockers WHERE numero = ? AND id <> ?');
         $stmt->bind_param('ii', $numero, $id);
         $stmt->execute();
@@ -74,13 +85,13 @@ switch ($acao) {
         }
 
         if ($armario) {
-            $stmt = $conn->prepare('UPDATE lockers SET numero = ?, localizacao = ?, status = ? WHERE id = ?');
-            $stmt->bind_param('issi', $numero, $local, $status, $id);
+            $stmt = $conn->prepare('UPDATE lockers SET numero = ?, localizacao = ?, status = ?, metodo_acesso = ? WHERE id = ?');
+            $stmt->bind_param('isssi', $numero, $local, $status, $metodo, $id);
             $stmt->execute();
             $mensagem = nomeArmario($numero) . ' atualizado.';
         } else {
-            $stmt = $conn->prepare('INSERT INTO lockers (numero, localizacao, status) VALUES (?, ?, ?)');
-            $stmt->bind_param('iss', $numero, $local, $status);
+            $stmt = $conn->prepare('INSERT INTO lockers (numero, localizacao, status, metodo_acesso) VALUES (?, ?, ?, ?)');
+            $stmt->bind_param('isss', $numero, $local, $status, $metodo);
             $stmt->execute();
             $mensagem = nomeArmario($numero) . ' cadastrado.';
         }

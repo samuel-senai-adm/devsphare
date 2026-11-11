@@ -15,6 +15,9 @@ class AppEstado extends ChangeNotifier {
   List<Reserva> historico = []; // mais recentes primeiro
   List<Acesso> acessos = [];
 
+  /// Se a conta tem chaveiro RFID vinculado (armário RFID só pode ser reservado com chaveiro)
+  bool temChaveiro = false;
+
   bool carregando = false;
   bool _descartado = false;
   bool carregadoUmaVez = false;
@@ -36,6 +39,7 @@ class AppEstado extends ChangeNotifier {
       armarios = (respostas[0]['armarios'] as List)
           .map((a) => Armario.deJson(a as Map<String, dynamic>))
           .toList();
+      temChaveiro = respostas[0]['tem_chaveiro'] == true;
 
       final r = respostas[1]['reserva'];
       reserva = r == null ? null : Reserva.deJson(r as Map<String, dynamic>);

@@ -24,6 +24,19 @@ Abra o **MySQL Workbench** (ou phpMyAdmin → aba SQL) no banco `devsphar_smartl
 
 > Enquanto a migração não for rodada, o site mostra "O banco de dados está desatualizado (falta: bloqueado)".
 
+Depois, rode também `sistema/sql/migracao_2026_11_tipo_armario.sql` (tipo de abertura do armário, veja abaixo).
+No banco de teste do grupo ela **já foi aplicada**; falta só no da HostGator.
+
+### Tipo de abertura do armário (QR Code ou chaveiro RFID)
+
+Cada armário abre por **um** método só, escolhido em **Armários → Novo/Editar → Como o armário abre**.
+
+- **QR Code**: o usuário mostra o QR da reserva no leitor. Chaveiro encostado nesse armário é recusado.
+- **Chaveiro RFID**: só quem tem chaveiro vinculado consegue reservar; QR Code nesse armário é recusado.
+- O usuário vê o tipo no card do armário, na hora de reservar e na reserva ativa (site e app).
+- Não dá para trocar o tipo enquanto o armário tem reserva ativa.
+- O número do armário RFID tem que ser o mesmo `NUMERO_ARMARIO` do ESP32 que está nele.
+
 ### 1.2 Criar o primeiro administrador
 
 1. Cadastre a conta normalmente pela tela de cadastro do site (use uma senha forte).
@@ -109,6 +122,7 @@ O `sistema/config/config.exemplo.php` agora está no GitHub (antes faltava). Cop
 - `sistema/config/acesso.php` — proteção reutilizável das páginas
 - `sistema/config/config.exemplo.php` — modelo de configuração (faltava no repositório)
 - `sistema/sql/migracao_2026_11_admin.sql`
+- `sistema/sql/migracao_2026_11_tipo_armario.sql`
 
 **Modificados**
 

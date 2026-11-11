@@ -40,12 +40,14 @@ class Usuario {
 }
 
 /// status: livre | ocupado | manutencao | minha
+/// metodoAcesso: qrcode | rfid  (como o armário abre, definido pelo administrador)
 class Armario {
   final int id;
   final String numero;
   final String nome;
   final String localizacao;
   final String status;
+  final String metodoAcesso;
 
   Armario({
     required this.id,
@@ -53,6 +55,7 @@ class Armario {
     required this.nome,
     required this.localizacao,
     required this.status,
+    this.metodoAcesso = 'qrcode',
   });
 
   factory Armario.deJson(Map<String, dynamic> j) => Armario(
@@ -61,10 +64,12 @@ class Armario {
         nome: (j['nome'] ?? '').toString(),
         localizacao: (j['localizacao'] ?? '').toString(),
         status: (j['status'] ?? 'ocupado').toString(),
+        metodoAcesso: j['metodo_acesso'] == 'rfid' ? 'rfid' : 'qrcode',
       );
 
   bool get livre => status == 'livre';
   bool get minha => status == 'minha';
+  bool get usaRfid => metodoAcesso == 'rfid';
 }
 
 class Reserva {
@@ -82,6 +87,7 @@ class Reserva {
   final String statusCodigo; // ativa | finalizada | cancelada
   final DateTime? criadaEm;
   final String? qr;
+  final String metodoAcesso; // qrcode | rfid
 
   Reserva({
     required this.id,
@@ -98,6 +104,7 @@ class Reserva {
     required this.statusCodigo,
     this.criadaEm,
     this.qr,
+    this.metodoAcesso = 'qrcode',
   });
 
   factory Reserva.deJson(Map<String, dynamic> j) => Reserva(
@@ -115,8 +122,10 @@ class Reserva {
         statusCodigo: (j['status_codigo'] ?? '').toString(),
         criadaEm: j['criada_em'] == null ? null : DateTime.tryParse(j['criada_em'].toString())?.toLocal(),
         qr: j['qr']?.toString(),
+        metodoAcesso: j['metodo_acesso'] == 'rfid' ? 'rfid' : 'qrcode',
       );
 
+  bool get usaRfid => metodoAcesso == 'rfid';
   bool get ativa => statusCodigo == 'ativa';
   bool get emAndamento => ativa && !DateTime.now().isBefore(dataInicio);
 }

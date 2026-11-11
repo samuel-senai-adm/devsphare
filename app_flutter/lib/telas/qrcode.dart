@@ -67,6 +67,17 @@ class TelaQrCode extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: 60),
               child: Center(child: CircularProgressIndicator(color: Cores.vermelho)),
             )
+          else if (r != null && r.usaRfid)
+            Painel(
+              child: EstadoVazio(
+                icone: Icons.nfc,
+                titulo: 'Sua reserva usa chaveiro RFID',
+                texto: 'O ${r.armario} não usa QR Code: encoste o seu chaveiro no leitor para abrir. '
+                    'A porta libera a partir de 10 minutos antes do início da reserva.',
+                rotuloAcao: 'Ver reserva',
+                acao: () => irPara(Aba.inicio),
+              ),
+            )
           else if (r == null || r.qr == null)
             Painel(
               child: EstadoVazio(
@@ -92,19 +103,16 @@ class TelaQrCode extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: Cores.borda),
               ),
-              child: Row(
+              child: const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.memory, color: Cores.cinza, size: 20),
-                  const SizedBox(width: 10),
+                  Icon(Icons.memory, color: Cores.cinza, size: 20),
+                  SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      estado.usuario?.chaveiroRfid == true
-                          ? 'A porta libera a partir de 10 minutos antes do início. '
-                              'Você também pode usar seu chaveiro RFID no lugar do QR.'
-                          : 'A porta libera a partir de 10 minutos antes do início. '
-                              'Aumente o brilho da tela se o leitor demorar.',
-                      style: const TextStyle(fontSize: 13, color: Cores.texto2, height: 1.4),
+                      'A porta libera a partir de 10 minutos antes do início. '
+                      'Aumente o brilho da tela se o leitor demorar.',
+                      style: TextStyle(fontSize: 13, color: Cores.texto2, height: 1.4),
                     ),
                   ),
                 ],
